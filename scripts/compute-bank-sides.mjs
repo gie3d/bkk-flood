@@ -75,10 +75,19 @@ const bkkDist = s => Math.hypot(s.lat - 13.76, (s.lon - 100.5) * Math.cos(toRad(
 const todo = stations.filter(s => !existing[s.code]).sort((a, b) => bkkDist(a) - bkkDist(b));
 console.log(`${stations.length} สถานีมีตลิ่งสองฝั่งต่างกัน, ต้องคำนวณ ${todo.length}`);
 
+let skipped = 0;
 for (let i = 0; i < todo.length; i += BATCH) {
   const batch = todo.slice(i, i + BATCH);
   const q = `[out:json][timeout:90];(${batch.map(s => `way(around:${RADIUS},${s.lat},${s.lon})[waterway~"^(river|canal|stream|drain)$"];`).join('')});out geom tags;`;
-  const j = await overpass(q);
+  let j;
+  try {
+    j = await overpass(q);
+  } catch {
+    // เซิร์ฟเวอร์ OSM ล่ม/ช้า: ข้ามชุดนี้ไปก่อน รันสคริปต์ใหม่ภายหลังจะกลับมาทำชุดที่ข้ามไป
+    console.warn(`  ข้ามชุดที่ ${i / BATCH + 1} (${batch.map(s => s.code).join(', ')}) เพราะเซิร์ฟเวอร์ไม่ตอบ`);
+    skipped += batch.length;
+    continue;
+  }
   const ways = j.elements.filter(w => w.geometry?.length > 1);
   for (const s of batch) {
     const p = { lat: s.lat, lon: s.lon };
@@ -112,4 +121,4 @@ for (let i = 0; i < todo.length; i += BATCH) {
   await sleep(3000);
 }
 
-console.log(`บันทึก ${Object.keys(existing).length} สถานีที่ ${OUT}`);
+console.log(`บันทึก ${Object.keys(existing).length} สถานีที่ ${OUT}${skipped ? ` (ข้าม ${skipped} สถานี รันใหม่ภายหลังเพื่อเก็บให้ครบ)` : ''}`);
