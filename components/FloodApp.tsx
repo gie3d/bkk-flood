@@ -219,7 +219,6 @@ export default function FloodApp() {
             <a href="https://www.disaster.go.th/" target="_blank" rel="noopener noreferrer">ปภ.</a>,{' '}
             <a href="https://www.rid.go.th/" target="_blank" rel="noopener noreferrer">กรมชลประทาน</a> และ{' '}
             <a href="https://weather.bangkok.go.th/" target="_blank" rel="noopener noreferrer">สำนักการระบายน้ำ กทม.</a> ประกอบเสมอ</p>
-          <p className="muted">แหล่งข้อมูลอื่น: <a href="https://flood.pop.in.th/" target="_blank" rel="noopener noreferrer">flood.pop.in.th</a> · <a href="https://faonam.com/" target="_blank" rel="noopener noreferrer">faonam.com</a></p>
         </div>
       </footer>
 
