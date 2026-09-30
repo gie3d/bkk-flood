@@ -76,7 +76,7 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
             {a.nearest.length ? (
               <div className="gauges">
                 {a.nearest.slice(0, 4).map(({ s, d }) => (
-                  <StationGauge key={s.id} s={s} distance={d} selected={s.id === selected?.id} onClick={() => setPicked(s.id)} />
+                  <StationGauge key={s.id} s={s} distance={d} selected={s.id === selected?.id} onClick={() => setPicked(s.id)} refTime={data.fetchedAt} />
                 ))}
               </div>
             ) : (

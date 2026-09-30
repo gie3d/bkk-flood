@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { STATUS, stationStatus } from '@/lib/assess';
-import { clamp, fmt, fmtInt, thShort } from '@/lib/format';
+import { ago, clamp, fmt, fmtInt, thDateTime, thShort } from '@/lib/format';
 import { referenceLevels } from '@/lib/barriers';
 import type { GraphPoint, Station } from '@/lib/types';
 
@@ -144,7 +144,16 @@ function layoutLabels<T extends { y: number; h: number }>(items: T[], minY: numb
   return sorted;
 }
 
-export function StationGauge({ s, distance, selected, onClick }: { s: Station; distance?: number; selected?: boolean; onClick?: () => void }) {
+export function StationGauge({ s, distance, selected, onClick, refTime }: {
+  s: Station;
+  distance?: number;
+  selected?: boolean;
+  onClick?: () => void;
+  /** เวลาที่ดึงข้อมูล (ISO) ใช้ตัดสินว่าค่าที่วัดเก่าเกิน 2 ชม. หรือไม่ */
+  refTime?: string;
+}) {
+  const asOf = refTime ? new Date(refTime).getTime() : undefined;
+  const old = !!(s.time && asOf && asOf - new Date(s.time).getTime() > 2 * 3600e3);
   const st = stationStatus(s);
   const color = STATUS[st].color;
   const refs = referenceLevels(s);
@@ -220,6 +229,12 @@ export function StationGauge({ s, distance, selected, onClick }: { s: Station; d
         })}
       </svg>
       <div className="g-name">{s.name}</div>
+      {s.time && (
+        <div className={`g-time${old ? ' old' : ''}`}>
+          วัดเมื่อ {thDateTime(s.time)}
+          {old && <> ({ago(s.time, asOf)})</>}
+        </div>
+      )}
       <div className="g-sub">{s.river || s.amphoe}{distance !== undefined ? ` · ${fmt(distance, 1)} กม.` : ''}</div>
       <div className="g-val" style={{ color }}>
         {STATUS[st].label}

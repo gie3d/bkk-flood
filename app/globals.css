@@ -356,3 +356,6 @@ button.gauge:hover { border-color: var(--brand); }
 .ref-legend li { display: flex; gap: 8px; align-items: baseline; }
 .ref-legend i { flex: none; width: 22px; height: 0; transform: translateY(-3px); }
 .ref-legend b { color: var(--text); font-weight: 600; white-space: nowrap; }
+
+.gauge .g-time { font-size: .74rem; color: var(--muted); line-height: 1.3; font-variant-numeric: tabular-nums; }
+.gauge .g-time.old { color: var(--l3); font-weight: 600; }
