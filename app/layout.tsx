@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { IBM_Plex_Sans_Thai } from 'next/font/google';
+import { Playpen_Sans_Thai } from 'next/font/google';
 import 'leaflet/dist/leaflet.css';
 import './globals.css';
 
-const plexThai = IBM_Plex_Sans_Thai({
+const playpenThai = Playpen_Sans_Thai({
   subsets: ['thai', 'latin'],
-  weight: ['400', '500', '600', '700'],
   variable: '--font-thai',
   display: 'swap',
 });
@@ -31,7 +30,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="th" className={plexThai.variable}>
+    <html lang="th" className={playpenThai.variable}>
       <body>{children}</body>
     </html>
   );

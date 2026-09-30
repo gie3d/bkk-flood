@@ -1,7 +1,7 @@
 import 'server-only';
 import { assessOverall, KEY, METRO, STALE_HOURS } from './assess';
 import { num, thaiTimeToIso } from './format';
-import type { Dam, Graph, GraphPoint, Photo, RainStation, Situation, Station } from './types';
+import type { Dam, Graph, GraphPoint, GraphStats, Photo, RainStation, Situation, Station } from './types';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- ThaiWater ส่ง JSON ที่ไม่มี schema */
 
@@ -159,32 +159,83 @@ function extractDams(main: any): Dam[] {
     });
 }
 
-/** บางสถานีส่งข้อมูลทุก 10 นาที เก็บไว้ชั่วโมงละจุด (จุดสุดท้ายของชั่วโมง) ก็พอสำหรับกราฟ 7 วัน */
+/** บางสถานีส่งข้อมูลทุก 10 นาที เก็บไว้ชั่วโมงละจุด (จุดสุดท้ายของชั่วโมง) */
 function hourly(points: GraphPoint[]): GraphPoint[] {
   const byHour = new Map<string, GraphPoint>();
   for (const p of points) byHour.set(p.t.slice(0, 13), p);
   return [...byHour.values()];
 }
 
+/** ตัดค่าที่เซนเซอร์กระโดดผิดปกติ (ต่างจากจุดข้างเคียงทั้งสองฝั่งเกิน 1.5 ม. ไปทางเดียวกัน) */
+function despike(points: GraphPoint[]): GraphPoint[] {
+  // หาค่าก่อนหน้า/ถัดไปที่ไม่ว่าง แบบ O(n)
+  const n = points.length;
+  const prev: (number | null)[] = new Array(n);
+  const next: (number | null)[] = new Array(n);
+  let last: number | null = null;
+  for (let i = 0; i < n; i++) { prev[i] = last; if (points[i].v !== null) last = points[i].v; }
+  last = null;
+  for (let i = n - 1; i >= 0; i--) { next[i] = last; if (points[i].v !== null) last = points[i].v; }
+  return points.map((p, i) => {
+    const a = prev[i], b = next[i];
+    if (p.v === null || a === null || b === null) return p;
+    const spike = Math.abs(p.v - a) > 1.5 && Math.abs(p.v - b) > 1.5 && Math.sign(p.v - a) === Math.sign(p.v - b);
+    return spike ? { ...p, v: null } : p;
+  });
+}
+
+function computeStats(points: GraphPoint[], bank: number | null): GraphStats {
+  const vs = points.filter(p => p.v !== null) as { t: string; v: number }[];
+  const qs = points.filter(p => p.q !== null) as { t: string; q: number }[];
+  const pick = (arr: { t: string; v: number }[], better: (a: number, b: number) => boolean) =>
+    arr.reduce<{ t: string; v: number } | null>((m, p) => (!m || better(p.v, m.v) ? { t: p.t, v: p.v } : m), null);
+  return {
+    hours: vs.length,
+    first: vs.length ? { t: vs[0].t, v: vs[0].v } : null,
+    last: vs.length ? { t: vs[vs.length - 1].t, v: vs[vs.length - 1].v } : null,
+    max: pick(vs, (a, b) => a > b),
+    min: pick(vs, (a, b) => a < b),
+    avg: vs.length ? Math.round((vs.reduce((s, p) => s + p.v, 0) / vs.length) * 100) / 100 : null,
+    hoursOverBank: bank === null ? 0 : vs.filter(p => p.v > bank).length,
+    qMax: pick(qs.map(p => ({ t: p.t, v: p.q })), (a, b) => a > b),
+  };
+}
+
+/** ย่อจุดให้เหลือไม่เกิน ~400 จุด โดยเก็บค่าสูงสุดของแต่ละช่วง (สำคัญที่สุดสำหรับเรื่องน้ำท่วม) */
+function downsample(points: GraphPoint[], maxPoints = 400): { step: number; points: GraphPoint[] } {
+  const step = Math.max(1, Math.ceil(points.length / maxPoints));
+  if (step === 1) return { step, points };
+  const out: GraphPoint[] = [];
+  for (let i = 0; i < points.length; i += step) {
+    const chunk = points.slice(i, i + step);
+    const vs = chunk.map(p => p.v).filter((x): x is number => x !== null);
+    const qs = chunk.map(p => p.q).filter((x): x is number => x !== null);
+    out.push({ t: chunk[chunk.length - 1].t, v: vs.length ? Math.max(...vs) : null, q: qs.length ? Math.max(...qs) : null });
+  }
+  return { step, points: out };
+}
+
+export const GRAPH_DAYS = [1, 7, 30, 90, 365] as const;
+
 export async function fetchGraph(stationId: number, code: string, name: string, days = 7): Promise<Graph> {
   const ymd = (d: Date) => new Date(d.getTime() + 7 * 3600e3).toISOString().slice(0, 10);
   const end = new Date();
-  const start = new Date(Date.now() - days * 864e5);
+  const since = Date.now() - days * 864e5;
   const res = await getJSON(
-    `public/waterlevel_graph?station_type=tele_waterlevel&station_id=${stationId}&start_date=${ymd(start)}&end_date=${ymd(end)}`,
+    `public/waterlevel_graph?station_type=tele_waterlevel&station_id=${stationId}&start_date=${ymd(new Date(since))}&end_date=${ymd(end)}`,
+    days >= 30 ? 55000 : 20000, // ThaiWater ตอบช่วงยาวช้า (บางครั้ง 15–45 วินาที)
   );
   const d = res?.data || {};
-  return {
-    code,
-    name,
-    bank: num(d.min_bank),
-    qmax: num(d.qmax),
-    points: hourly(
+  const bank = num(d.min_bank);
+  const all = despike(
+    hourly(
       (d.graph_data || [])
         .map((p: any) => ({ t: thaiTimeToIso(p.datetime), v: num(p.value), q: num(p.discharge) }))
-        .filter((p: any) => p.t && (p.v !== null || p.q !== null)),
+        .filter((p: any) => p.t && (p.v !== null || p.q !== null) && new Date(p.t).getTime() >= since),
     ),
-  };
+  );
+  const ds = downsample(all);
+  return { code, name, bank, qmax: num(d.qmax), days, step: ds.step, points: ds.points, stats: computeStats(all, bank) };
 }
 
 async function build(): Promise<Situation> {

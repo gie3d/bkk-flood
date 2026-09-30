@@ -10,6 +10,7 @@ interface Props {
   stations?: Station[];
   place?: Place | null;
   onPick?: (lat: number, lng: number) => void;
+  onStation?: (id: number) => void;
   center?: [number, number];
   zoom?: number;
   className?: string;
@@ -29,19 +30,33 @@ function popupHtml(s: Station) {
     <span style="color:${STATUS[st].color};font-weight:600">${STATUS[st].label}${s.pct !== null ? ` (${Math.round(s.pct)}%)` : ''}</span>
     ${trend !== null && Math.abs(trend) >= 0.01 && Math.abs(trend) < 1 ? ` · ${trend > 0 ? '▲' : '▼'} ${Math.abs(trend * 100).toFixed(0)} ซม.` : ''}
     ${s.discharge !== null ? `<br>ปริมาณน้ำ ${fmtInt(s.discharge)} ลบ.ม./วินาที` : ''}
-    <br><small>${esc(thShort(s.time))} · ${esc(s.agency)}</small>`;
+    <br><small>${esc(thShort(s.time))} · ${esc(s.agency)}</small>
+    <br><button type="button" class="popup-more" data-station="${s.id}">ดูข้อมูลย้อนหลัง →</button>`;
 }
 
-export default function LeafletMap({ stations, place, onPick, center = [13.85, 100.55], zoom = 9, className = 'mapbox', label = 'แผนที่' }: Props) {
+export default function LeafletMap({ stations, place, onPick, onStation, center = [13.85, 100.55], zoom = 9, className = 'mapbox', label = 'แผนที่' }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const L = useRef<typeof Leaflet | null>(null);
   const map = useRef<Leaflet.Map | null>(null);
   const layer = useRef<Leaflet.LayerGroup | null>(null);
   const pin = useRef<Leaflet.Marker | null>(null);
   const pickRef = useRef(onPick);
+  const stationRef = useRef(onStation);
   useEffect(() => {
     pickRef.current = onPick;
-  }, [onPick]);
+    stationRef.current = onStation;
+  }, [onPick, onStation]);
+
+  // ปุ่ม "ดูข้อมูลย้อนหลัง" อยู่ใน popup ของ Leaflet (HTML ธรรมดา) จึงดักคลิกที่กล่องแผนที่
+  useEffect(() => {
+    const node = el.current;
+    const onClick = (e: MouseEvent) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-station]');
+      if (btn) stationRef.current?.(Number(btn.dataset.station));
+    };
+    node?.addEventListener('click', onClick);
+    return () => node?.removeEventListener('click', onClick);
+  }, []);
   const initial = useRef({ center, zoom });
 
   // สร้างแผนที่ครั้งเดียว (Leaflet ใช้ window จึงโหลดเฉพาะฝั่งเบราว์เซอร์)

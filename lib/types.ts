@@ -67,12 +67,29 @@ export interface GraphPoint {
   q: number | null;
 }
 
+export interface GraphStats {
+  /** จำนวนชั่วโมงที่มีข้อมูล */
+  hours: number;
+  first: { t: string; v: number } | null;
+  last: { t: string; v: number } | null;
+  max: { t: string; v: number } | null;
+  min: { t: string; v: number } | null;
+  avg: number | null;
+  /** จำนวนชั่วโมงที่น้ำสูงกว่าตลิ่ง */
+  hoursOverBank: number;
+  qMax: { t: string; v: number } | null;
+}
+
 export interface Graph {
   code: string;
   name: string;
   bank: number | null;
   qmax: number | null;
+  days: number;
+  /** จำนวนชั่วโมงต่อหนึ่งจุดในกราฟ (1 = รายชั่วโมง) ถ้ามากกว่า 1 แต่ละจุดคือค่าสูงสุดของช่วงนั้น */
+  step: number;
   points: GraphPoint[];
+  stats: GraphStats;
 }
 
 export interface Indicator {

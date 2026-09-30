@@ -41,10 +41,30 @@ export function LineChart({ points, field, refs = [], unit, decimals = 2, height
   const fmtV = (v: number) => (decimals ? fmt(v, decimals) : fmtInt(v));
 
   const grid = Array.from({ length: 5 }, (_, i) => lo + ((hi - lo) * i) / 4);
-  const days: number[] = [];
-  const d0 = new Date(t0 + 7 * 3600e3);
-  d0.setUTCHours(0, 0, 0, 0);
-  for (let d = d0.getTime() - 7 * 3600e3 + 864e5; d < t1; d += 864e5) days.push(d);
+  // ขีดแกนเวลาตามความยาวช่วง: ทุก 6 ชม. / ทุกวัน / ทุกสัปดาห์ / ทุกเดือน (เวลาไทย)
+  const spanDays = (t1 - t0) / 864e5;
+  const TH = 7 * 3600e3;
+  const ticks: { t: number; label: string }[] = [];
+  const dayLabel = (t: number) => new Date(t).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', timeZone: 'Asia/Bangkok' });
+  if (spanDays <= 2) {
+    for (let t = Math.ceil((t0 + TH) / 216e5) * 216e5 - TH; t < t1; t += 216e5) {
+      const hh = new Date(t + TH).getUTCHours();
+      ticks.push({ t, label: hh === 0 ? dayLabel(t) : `${String(hh).padStart(2, '0')}:00` });
+    }
+  } else if (spanDays <= 12) {
+    for (let t = Math.ceil((t0 + TH) / 864e5) * 864e5 - TH; t < t1; t += 864e5) ticks.push({ t, label: dayLabel(t) });
+  } else if (spanDays <= 100) {
+    const every = spanDays <= 40 ? 7 : 14;
+    for (let t = Math.ceil((t0 + TH) / 864e5) * 864e5 - TH; t < t1; t += every * 864e5) ticks.push({ t, label: dayLabel(t) });
+  } else {
+    const d = new Date(t0 + TH);
+    let m = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)).getTime() - TH;
+    while (m < t1) {
+      ticks.push({ t: m, label: new Date(m).toLocaleDateString('th-TH', { month: 'short', timeZone: 'Asia/Bangkok' }) });
+      const n = new Date(m + TH);
+      m = new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth() + 1, 1)).getTime() - TH;
+    }
+  }
 
   const onMove = (e: React.PointerEvent) => {
     const r = wrap.current!.getBoundingClientRect();
@@ -72,10 +92,11 @@ export function LineChart({ points, field, refs = [], unit, decimals = 2, height
             <text x={L - 6} y={y(v) + 3} textAnchor="end">{decimals ? v.toFixed(1) : Math.round(v).toLocaleString('th-TH')}</text>
           </g>
         ))}
-        {days.map(d => (
-          <text key={d} x={x(d)} y={H - 6} textAnchor="middle">
-            {new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', timeZone: 'Asia/Bangkok' })}
-          </text>
+        {ticks.map(k => (
+          <g key={k.t}>
+            <line x1={x(k.t)} x2={x(k.t)} y1={H - B} y2={H - B + 4} stroke="var(--line)" />
+            <text x={x(k.t)} y={H - 6} textAnchor="middle">{k.label}</text>
+          </g>
         ))}
         <path d={area} fill={`url(#g-${field}-${H})`} />
         {refs.map(r => (
@@ -106,36 +127,69 @@ export function LineChart({ points, field, refs = [], unit, decimals = 2, height
 
 /* ---------------- หลอดวัดระดับน้ำเทียบตลิ่ง ---------------- */
 
-export function StationGauge({ s, distance }: { s: Station; distance?: number }) {
+export function StationGauge({ s, distance, selected, onClick }: { s: Station; distance?: number; selected?: boolean; onClick?: () => void }) {
   const st = stationStatus(s);
   const pct = s.pct ?? 0;
-  // สเกล 0–130% ของตลิ่ง
-  const H = 150, top = 12, bottom = H - 16;
+  const color = STATUS[st].color;
+  // สเกลหลอด 0–130% ของความสูงตลิ่ง
+  const W = 170, H = 160, top = 10, bottom = H - 12, tx = 10, tw = 40;
   const yOf = (p: number) => bottom - (clamp(p, 0, 130) / 130) * (bottom - top);
   const water = yOf(pct);
   const bank = yOf(100);
-  const color = STATUS[st].color;
+
+  // ป้ายตลิ่งและป้ายน้ำต้องห่างกันพอไม่ให้ทับกัน (ป้ายน้ำมี 2 บรรทัด สูง ~26px)
+  const aboveBank = pct > 100;
+  let bankY = bank + 4;
+  let waterY = water + 4;
+  if (Math.abs(waterY - bankY) < 30) {
+    if (aboveBank) bankY = waterY + 30;
+    else waterY = bankY + 30;
+  }
+  waterY = clamp(waterY, top + 10, bottom - 16);
+  bankY = clamp(bankY, top + 10, bottom);
+  const lx = tx + tw + 12;
+
+  const Tag = onClick ? 'button' : 'div';
   return (
-    <div className="gauge">
-      <svg viewBox={`0 0 110 ${H}`} aria-hidden="true">
-        <rect x="30" y={top} width="46" height={bottom - top} rx="8" fill="var(--bg-alt)" stroke="var(--line)" />
+    <Tag className={`gauge${selected ? ' selected' : ''}`} {...(onClick ? { type: 'button' as const, onClick, 'aria-pressed': !!selected } : {})}>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img"
+        aria-label={`ระดับน้ำ ${fmt(s.wl)} เมตร ตลิ่ง ${fmt(s.bank)} เมตร คิดเป็น ${Math.round(pct)}% ของตลิ่ง`}>
+        <rect x={tx} y={top} width={tw} height={bottom - top} rx="8" fill="var(--bg-alt)" stroke="var(--line)" />
         <clipPath id={`clip-${s.id}`}>
-          <rect x="30" y={top} width="46" height={bottom - top} rx="8" />
+          <rect x={tx} y={top} width={tw} height={bottom - top} rx="8" />
         </clipPath>
         <g clipPath={`url(#clip-${s.id})`}>
-          <rect x="30" y={water} width="46" height={bottom - water} fill={color} opacity=".85" />
-          <path d={`M30 ${water} q 6 -4 11.5 0 t 11.5 0 t 11.5 0 t 11.5 0`} fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="1.5" />
+          <rect x={tx} y={water} width={tw} height={bottom - water} fill={color} opacity=".85" />
+          <path d={`M${tx} ${water} q 5 -4 10 0 t 10 0 t 10 0 t 10 0`} fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="1.5" />
         </g>
-        <line x1="22" x2="84" y1={bank} y2={bank} stroke="var(--text)" strokeWidth="1.5" strokeDasharray="4 3" />
-        <text x="86" y={bank + 3} fontSize="9" fill="var(--muted)">ตลิ่ง</text>
-        <text x="53" y={Math.min(water - 5, bottom - 4)} fontSize="12" fontWeight="700" textAnchor="middle" fill={pct > 60 ? '#fff' : 'var(--text)'} style={{ paintOrder: 'stroke' }}>
-          {s.pct !== null ? `${Math.round(pct)}%` : '–'}
+
+        {/* ตลิ่ง / คันกั้นน้ำ */}
+        <line x1={tx - 4} x2={tx + tw + 6} y1={bank} y2={bank} stroke="var(--text)" strokeWidth="1.5" strokeDasharray="4 3" />
+        {Math.abs(bankY - 4 - bank) > 2 && <line x1={tx + tw + 6} x2={lx - 2} y1={bank} y2={bankY - 4} stroke="var(--muted)" strokeWidth=".8" />}
+        <text x={lx} y={bankY} fontSize="11" fill="var(--muted)">
+          ตลิ่ง <tspan fontWeight="700" fill="var(--text)">{fmt(s.bank)} ม.</tspan>
+        </text>
+
+        {/* ผิวน้ำ */}
+        <line x1={tx + tw} x2={lx - 2} y1={water} y2={waterY - 4} stroke={color} strokeWidth="1.2" />
+        <text x={lx} y={waterY} fontSize="11" fill="var(--muted)">
+          น้ำ <tspan fontWeight="700" fill="var(--text)">{fmt(s.wl)} ม.</tspan>
+        </text>
+        <text x={lx} y={waterY + 15} fontSize="12" fontWeight="700" fill={color}>
+          {s.pct !== null ? `${Math.round(pct)}% ของตลิ่ง` : '–'}
         </text>
       </svg>
       <div className="g-name">{s.name}</div>
       <div className="g-sub">{s.river || s.amphoe}{distance !== undefined ? ` · ${fmt(distance, 1)} กม.` : ''}</div>
-      <div className="g-val" style={{ color }}>{STATUS[st].label}{s.over > 0 ? ` +${fmt(s.over)} ม.` : ''}</div>
-    </div>
+      <div className="g-val" style={{ color }}>
+        {STATUS[st].label}
+        {s.over > 0
+          ? ` (สูงกว่าตลิ่ง ${fmt(s.over)} ม.)`
+          : s.wl !== null && s.bank !== null && !s.stale
+            ? ` (ต่ำกว่าตลิ่ง ${fmt(s.bank - s.wl)} ม.)`
+            : ''}
+      </div>
+    </Tag>
   );
 }
 

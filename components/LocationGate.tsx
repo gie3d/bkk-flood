@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import LeafletMap from './LeafletMap';
-import { DISTRICTS, districtPlace, nearestDistrict } from '@/lib/districts';
+import { nearestDistrict } from '@/lib/districts';
+import DistrictPicker from './DistrictPicker';
 import type { HouseOpts, Place } from '@/lib/types';
 import { IconPin, IconTarget } from './icons';
 
@@ -67,24 +68,8 @@ export default function LocationGate({ opts, onOpts, onPlace, onSkip, onCancel }
           </button>
           {err && <p className="banner" role="alert" style={{ margin: 0 }}>{err}</p>}
 
-          <div className="or"><span>หรือเลือกเขต / อำเภอ</span></div>
-          <label className="field">
-            <span className="sr-only">เขต / อำเภอ</span>
-            <select
-              defaultValue=""
-              onChange={e => {
-                const p = e.target.value && districtPlace(e.target.value);
-                if (p) onPlace(p);
-              }}
-            >
-              <option value="">— เลือกพื้นที่ —</option>
-              {DISTRICTS.map((g, gi) => (
-                <optgroup key={g.group} label={g.group}>
-                  {g.items.map((d, di) => <option key={d[0]} value={`${gi}:${di}`}>{d[0]}</option>)}
-                </optgroup>
-              ))}
-            </select>
-          </label>
+          <div className="or"><span>หรือค้นหาเขต / อำเภอ</span></div>
+          <DistrictPicker onPick={onPlace} />
 
           <fieldset className="field">
             <legend>บ้านของคุณเป็นแบบไหน (ไม่บังคับ)</legend>

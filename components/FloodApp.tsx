@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { assessPlace } from '@/lib/assess';
-import type { HouseOpts, Photo, Place, Situation } from '@/lib/types';
+import type { HouseOpts, Photo, Place, Situation, Station } from '@/lib/types';
 import LocationGate from './LocationGate';
 import PersonalHero from './PersonalHero';
 import Overview from './Overview';
 import { Dams, Lightbox, PhotoGallery } from './Media';
 import { StationMap, StationTable } from './Stations';
 import Prepare from './Prepare';
+import StationModal from './StationModal';
 import { IconDrop, IconPin } from './icons';
 
 const REFRESH_MS = 10 * 60 * 1000;
@@ -40,6 +41,7 @@ export default function FloodApp() {
   const [place, setPlace] = useState<Place | null>(null);
   const [opts, setOpts] = useState<HouseOpts>({ river: false, low: false, oneFloor: false });
   const [photo, setPhoto] = useState<Photo | null>(null);
+  const [detail, setDetail] = useState<Station | null>(null);
 
   // อ่านตำแหน่งที่บันทึกไว้ (ทำหลัง mount เพราะ localStorage มีเฉพาะฝั่งเบราว์เซอร์)
   useEffect(() => {
@@ -95,6 +97,7 @@ export default function FloodApp() {
   };
 
   const closePhoto = useCallback(() => setPhoto(null), []);
+  const closeDetail = useCallback(() => setDetail(null), []);
 
   const personalLevel = data && place ? assessPlace(place, opts, data.stations, data.rain, data.overall).level : data?.overall.level ?? 0;
 
@@ -135,7 +138,7 @@ export default function FloodApp() {
 
         {mode === 'personal' && place && (
           data ? (
-            <PersonalHero data={data} place={place} opts={opts} onOpts={changeOpts} onChangePlace={openGate} onPhoto={setPhoto} />
+            <PersonalHero data={data} place={place} opts={opts} onOpts={changeOpts} onChangePlace={openGate} onPhoto={setPhoto} onStation={setDetail} />
           ) : (
             <div className="wrap hero">
               <p className="eyebrow">กำลังดึงข้อมูลระดับน้ำล่าสุดสำหรับ {place.name}…</p>
@@ -174,9 +177,9 @@ export default function FloodApp() {
               <div className="wrap">
                 <h2>แผนที่สถานีวัดระดับน้ำ</h2>
                 <p className="lead">สีแสดงระดับน้ำเทียบกับตลิ่ง แตะที่จุดเพื่อดูรายละเอียด</p>
-                <StationMap stations={data.stations} place={place} />
+                <StationMap stations={data.stations} place={place} onStation={setDetail} />
                 <h3 className="subhead">ระดับน้ำรายสถานี</h3>
-                <StationTable stations={data.stations} place={place} />
+                <StationTable stations={data.stations} place={place} onStation={setDetail} />
               </div>
             </section>
 
@@ -223,6 +226,7 @@ export default function FloodApp() {
       </footer>
 
       <Lightbox photo={photo} onClose={closePhoto} />
+      <StationModal station={detail} onClose={closeDetail} />
     </>
   );
 }

@@ -24,7 +24,7 @@ Push the project to GitHub, then import it at <https://vercel.com/new>. It needs
 app/
   page.tsx                 main page (renders FloodApp)
   api/situation/route.ts   fetches and trims all the data, cached 10 min
-  api/graph/route.ts       7-day graph for one station (/api/graph?id=…)
+  api/graph/route.ts       history for one station (/api/graph?id=…&days=1|7|30|90|365)
 components/
   FloodApp.tsx             main state: location, data, 10-minute refresh
   LocationGate.tsx         first step: ask for location (GPS / district / tap on map)
@@ -32,6 +32,8 @@ components/
   Overview.tsx             Bangkok overview: indicators, water path, river profile, graphs
   Media.tsx                radar images, rain forecasts, storms, live dam cameras
   Stations.tsx             map + station table
+  StationHistory.tsx       history + stats (24 h to 1 year) for one station
+  StationModal.tsx         full-screen window when a station is tapped (gauge / table / map)
   Prepare.tsx              checklists for each level
   charts.tsx               SVG charts (line with tooltip, water gauge, river profile, donut)
 lib/
@@ -47,7 +49,7 @@ lib/
 | `public/waterlevel_load` | Water level at about 800 stations nationwide, bank height, % of bank, discharge |
 | `public/rain_24h` | 24-hour rainfall |
 | `public/thailand_main` | Rain radar, rain forecast maps, storm maps, large-dam data + EGAT dam cameras |
-| `public/waterlevel_graph` | 7-day history per station |
+| `public/waterlevel_graph` | Hourly history per station, up to 1 year (long ranges can take 3–45 s from ThaiWater, so they are cached for 1 hour) |
 
 ## How the rating works (`lib/assess.ts`)
 

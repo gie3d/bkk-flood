@@ -20,7 +20,7 @@ const CHIPS: { key: string; label: string; test: (s: Station, p: Place | null) =
 
 const ORDER: Record<StationStatus, number> = { over: 0, near: 1, high: 2, ok: 3, stale: 4 };
 
-export function StationMap({ stations, place }: { stations: Station[]; place: Place | null }) {
+export function StationMap({ stations, place, onStation }: { stations: Station[]; place: Place | null; onStation: (s: Station) => void }) {
   const shown = useMemo(() => stations.filter(s => s.areaCode === '2' || (s.lat > 12.5 && s.lat < 17.5 && s.lng > 98.5 && s.lng < 102.5)), [stations]);
   return (
     <>
@@ -30,12 +30,20 @@ export function StationMap({ stations, place }: { stations: Station[]; place: Pl
         ))}
         {place && <span><i className="dot" style={{ background: 'var(--brand)', width: 12, height: 12 }} />บ้านของคุณ</span>}
       </div>
-      <LeafletMap stations={shown} place={place} label="แผนที่สถานีวัดระดับน้ำ" />
+      <LeafletMap
+        stations={shown}
+        place={place}
+        label="แผนที่สถานีวัดระดับน้ำ"
+        onStation={id => {
+          const s = stations.find(x => x.id === id);
+          if (s) onStation(s);
+        }}
+      />
     </>
   );
 }
 
-export function StationTable({ stations, place }: { stations: Station[]; place: Place | null }) {
+export function StationTable({ stations, place, onStation }: { stations: Station[]; place: Place | null; onStation: (s: Station) => void }) {
   const [chip, setChip] = useState(place ? 'near' : 'metro');
   const chips = CHIPS.filter(c => c.key !== 'near' || place);
   const active = chips.find(c => c.key === chip) ?? chips[0];
@@ -65,8 +73,11 @@ export function StationTable({ stations, place }: { stations: Station[]; place: 
               const st = stationStatus(s);
               const tr = s.wl !== null && s.prev !== null ? (s.wl - s.prev) * 100 : null;
               return (
-                <tr key={s.id} className={s.stale ? 'stale' : ''}>
-                  <td>{s.name}<small>{s.river || s.code}</small></td>
+                <tr key={s.id} className={`clickable${s.stale ? ' stale' : ''}`} onClick={() => onStation(s)}>
+                  <td>
+                    <button type="button" className="row-link" onClick={e => { e.stopPropagation(); onStation(s); }}>{s.name}</button>
+                    <small>{s.river || s.code}</small>
+                  </td>
                   <td>{s.amphoe}<small>{s.prov}</small></td>
                   <td className="num">{fmt(s.wl)}</td>
                   <td className="num">{fmt(s.bank)}</td>
@@ -90,7 +101,7 @@ export function StationTable({ stations, place }: { stations: Station[]; place: 
           </tbody>
         </table>
       </div>
-      <p className="hint">ม.รทก. = เมตรเหนือระดับน้ำทะเลปานกลาง · แนวโน้มเทียบกับการวัดครั้งก่อน · สถานีที่ไม่อัปเดตเกิน 6 ชั่วโมงแสดงเป็นสีเทา</p>
+      <p className="hint">ม.รทก. = เมตรเหนือระดับน้ำทะเลปานกลาง · แนวโน้มเทียบกับการวัดครั้งก่อน · สถานีที่ไม่อัปเดตเกิน 6 ชั่วโมงแสดงเป็นสีเทา · แตะที่สถานีเพื่อดูข้อมูลย้อนหลังสูงสุด 1 ปี</p>
     </>
   );
 }

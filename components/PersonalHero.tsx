@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { assessPlace, LEVEL_NAME, LEVEL_TEXT, STATUS, stationStatus } from '@/lib/assess';
+import { useMemo, useState } from 'react';
+import { assessPlace, LEVEL_NAME, LEVEL_TEXT } from '@/lib/assess';
 import { ago, fmt, thDateTime, thShort } from '@/lib/format';
-import type { Graph, HouseOpts, Photo, Place, Situation } from '@/lib/types';
-import { LineChart, StationGauge } from './charts';
+import type { HouseOpts, Photo, Place, Situation, Station } from '@/lib/types';
+import { StationGauge } from './charts';
+import StationHistory from './StationHistory';
 import { IconPin } from './icons';
 
 interface Props {
@@ -14,24 +15,14 @@ interface Props {
   onOpts: (o: HouseOpts) => void;
   onChangePlace: () => void;
   onPhoto: (p: Photo) => void;
+  onStation: (s: Station) => void;
 }
 
-export default function PersonalHero({ data, place, opts, onOpts, onChangePlace, onPhoto }: Props) {
+export default function PersonalHero({ data, place, opts, onOpts, onChangePlace, onPhoto, onStation }: Props) {
   const a = useMemo(() => assessPlace(place, opts, data.stations, data.rain, data.overall), [place, opts, data]);
   const txt = LEVEL_TEXT[a.level as 1 | 2 | 3 | 4];
-  const top = a.nearest[0]?.s;
-
-  const [graph, setGraph] = useState<{ id: number; g: Graph | null } | null>(null);
-  useEffect(() => {
-    if (!top) return;
-    let alive = true;
-    fetch(`/api/graph?id=${top.id}`)
-      .then(r => (r.ok ? r.json() : null))
-      .then(g => alive && setGraph({ id: top.id, g }))
-      .catch(() => alive && setGraph({ id: top.id, g: null }));
-    return () => { alive = false; };
-  }, [top]);
-  const g = graph && top && graph.id === top.id ? graph.g : undefined;
+  const [picked, setPicked] = useState<number | null>(null);
+  const selected = a.nearest.find(x => x.s.id === picked)?.s ?? a.nearest[0]?.s;
 
   const radar = data.photos.radar[0];
   const maxRain = Math.max(35, ...a.rainNear.map(x => x.r.mm));
@@ -74,31 +65,26 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
         <div className="hero-grid">
           <div className="panel">
             <h3>ระดับน้ำที่สถานีใกล้บ้านคุณ</h3>
-            <p className="sub">เทียบกับความสูงตลิ่ง (เส้นประ) ถ้าน้ำเกินเส้นประ แปลว่าน้ำล้นตลิ่งแล้ว</p>
+            <p className="sub">ความสูงเป็นเมตรเหนือระดับน้ำทะเลปานกลาง (ม.รทก.) · เส้นประคือตลิ่ง/คันกั้นน้ำ ถ้าน้ำเกินเส้นประแปลว่าน้ำล้นตลิ่งแล้ว</p>
             {a.nearest.length ? (
               <div className="gauges">
-                {a.nearest.slice(0, 4).map(({ s, d }) => <StationGauge key={s.id} s={s} distance={d} />)}
+                {a.nearest.slice(0, 4).map(({ s, d }) => (
+                  <StationGauge key={s.id} s={s} distance={d} selected={s.id === selected?.id} onClick={() => setPicked(s.id)} />
+                ))}
               </div>
             ) : (
               <p className="muted">ไม่มีสถานีวัดน้ำที่อัปเดตในรัศมี 25 กม.</p>
             )}
-            {top && (
+            {selected && (
               <>
-                <h3 style={{ marginTop: 18 }}>7 วันที่ผ่านมาที่ {top.name}</h3>
-                <p className="sub">ระดับน้ำ (ม.รทก.) · อัปเดต {ago(top.time)} · <span style={{ color: STATUS[stationStatus(top)].color }}>{STATUS[stationStatus(top)].label}</span></p>
-                {g === undefined ? (
-                  <div className="skeleton" style={{ minHeight: 180 }} />
-                ) : g ? (
-                  <LineChart
-                    points={g.points}
-                    field="v"
-                    unit="ม.รทก."
-                    height={190}
-                    refs={g.bank !== null ? [{ v: g.bank, label: `ตลิ่ง ${fmt(g.bank)}`, color: 'var(--l4)' }] : []}
-                  />
-                ) : (
-                  <p className="muted">โหลดกราฟไม่สำเร็จ</p>
-                )}
+                <div className="history-title">
+                  <div>
+                    <h3>ข้อมูลย้อนหลัง: {selected.name}</h3>
+                    <p className="sub" style={{ margin: 0 }}>แตะที่หลอดด้านบนเพื่อดูสถานีอื่น · อัปเดต {ago(selected.time)}</p>
+                  </div>
+                  <button type="button" className="btn-link" onClick={() => onStation(selected)}>ขยายเต็มจอ</button>
+                </div>
+                <StationHistory key={selected.id} station={selected} />
               </>
             )}
           </div>
@@ -106,7 +92,7 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
           <div className="panel">
             <h3>ฝนรอบบ้านคุณ (24 ชม.)</h3>
             <p className="sub">สถานีวัดฝนในรัศมี 15 กม. · 35+ มม. น้ำเริ่มขังถนน · 90+ มม. ท่วมขังหลายจุด</p>
-            {a.rainNear.length ? (
+            {a.rainNear.some(x => x.r.mm >= 0.1) ? (
               <div className="rainbars">
                 {a.rainNear.map(({ r, d }) => (
                   <div className="rainbar" key={`${r.name}-${r.lat}`}>
@@ -117,7 +103,11 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
                 ))}
               </div>
             ) : (
-              <p className="muted">ไม่มีรายงานฝนในรัศมี 15 กม.</p>
+              <p className="muted">
+                {a.rainNear.length
+                  ? `ไม่มีฝนตกใน 24 ชม. ที่ผ่านมา (${a.rainNear.length} สถานีวัดฝนในรัศมี 15 กม. วัดได้ 0 มม.)`
+                  : 'ไม่มีสถานีวัดฝนในรัศมี 15 กม.'}
+              </p>
             )}
 
             {radar && (
