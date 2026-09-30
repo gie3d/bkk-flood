@@ -10,7 +10,7 @@ import { Dams, Lightbox, PhotoGallery } from './Media';
 import { StationMap, StationTable } from './Stations';
 import Prepare from './Prepare';
 import StationModal from './StationModal';
-import { IconDrop, IconPin } from './icons';
+import { IconAlert, IconDrop, IconPin } from './icons';
 
 const REFRESH_MS = 10 * 60 * 1000;
 const LS_PLACE = 'bkkflood.place';
@@ -122,6 +122,18 @@ export default function FloodApp() {
       </header>
 
       <main>
+        <aside className="wrap notice" aria-label="ข้อควรทราบ">
+          <div className="notice-box">
+            <IconAlert size={16} />
+            <p>
+              <b>ข้อควรทราบ:</b> ระดับสถานการณ์บนเว็บนี้คำนวณด้วยเกณฑ์อย่างง่ายเพื่อช่วยตัดสินใจเบื้องต้น{' '}
+              <b>ไม่ใช่ประกาศทางราชการ</b> โปรดติดตามประกาศจาก{' '}
+              <a href="https://www.disaster.go.th/" target="_blank" rel="noopener noreferrer">ปภ.</a>,{' '}
+              <a href="https://www.rid.go.th/" target="_blank" rel="noopener noreferrer">กรมชลประทาน</a> และ{' '}
+              <a href="https://weather.bangkok.go.th/" target="_blank" rel="noopener noreferrer">สำนักการระบายน้ำ กทม.</a> ประกอบเสมอ
+            </p>
+          </div>
+        </aside>
         {error && <div className="wrap" style={{ paddingTop: 12 }}><p className="banner" role="status">{error}</p></div>}
 
         {mode === 'loading' && <div className="wrap hero"><div className="skeleton" style={{ minHeight: 320 }} /></div>}

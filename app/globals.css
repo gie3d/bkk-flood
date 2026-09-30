@@ -359,3 +359,15 @@ button.gauge:hover { border-color: var(--brand); }
 
 .gauge .g-time { font-size: .74rem; color: var(--muted); line-height: 1.3; font-variant-numeric: tabular-nums; }
 .gauge .g-time.old { color: var(--l3); font-weight: 600; }
+
+/* disclaimer notice under the top bar */
+.notice { padding-top: 14px; }
+.notice-box { display: flex; gap: 10px; align-items: flex-start; background: color-mix(in srgb, var(--brand) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--brand) 22%, transparent); border-radius: 14px; padding: 10px 14px; color: var(--muted); }
+.notice-box svg { flex: none; color: var(--brand); margin-top: 3px; }
+.notice p { margin: 0; font-size: .82rem; line-height: 1.55; }
+.notice b { color: var(--text); font-weight: 600; }
+.notice a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.notice a:hover { color: var(--brand); }
+/* บนหน้าเลือกตำแหน่ง ให้พื้นหลังไล่สีเริ่มจากใต้แถบบน (รวมกล่องข้อควรทราบ) จะได้ไม่มีรอยต่อ */
+main:has(> .gate) { background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 14%, var(--bg)) 0, var(--bg) 720px) no-repeat; }
+main:has(> .gate) .gate { background: none; }
