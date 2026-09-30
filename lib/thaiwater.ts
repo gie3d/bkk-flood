@@ -7,6 +7,24 @@ import type { Dam, Graph, GraphPoint, GraphStats, Photo, RainStation, Situation,
 
 const API = 'https://api-v3.thaiwater.net/api/v1/thaiwater30';
 const IMG = `${API}/shared/image?image=`;
+
+/**
+ * ภาพจาก ThaiWater มีการจำกัดจำนวนครั้ง (HTTP 429) ถ้าเบราว์เซอร์ของผู้ใช้โหลดหลายภาพพร้อมกัน
+ * จึงให้ผ่าน /api/image ของเราเอง ซึ่งดึงครั้งเดียวแล้วแคชไว้ที่ CDN
+ * (route นั้นดึงได้เฉพาะ shared/image ของ ThaiWater เท่านั้น ไม่ใช่ URL ใด ๆ)
+ */
+const proxied = (mediaPath: string) => `/api/image?p=${encodeURIComponent(mediaPath)}`;
+
+/** ดึงภาพจาก ThaiWater พร้อมลองใหม่เมื่อโดนจำกัดจำนวนครั้ง */
+export async function fetchThaiWaterImage(mediaPath: string): Promise<{ body: ArrayBuffer; type: string }> {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const res = await fetch(IMG + encodeURIComponent(mediaPath), { cache: 'no-store', signal: AbortSignal.timeout(20000) });
+    if (res.ok) return { body: await res.arrayBuffer(), type: res.headers.get('content-type') || 'image/jpeg' };
+    if (res.status !== 429 && res.status < 500) throw new Error(`image ${res.status}`);
+    await new Promise(r => setTimeout(r, 800 * (attempt + 1) + Math.random() * 400));
+  }
+  throw new Error('image rate limited');
+}
 const TTL_MS = 10 * 60 * 1000;
 
 async function getJSON(path: string, timeoutMs = 20000): Promise<any> {
@@ -97,8 +115,8 @@ const photo = (p: any, id: string, title: string, caption: string, source: strin
         id,
         title,
         caption,
-        url: IMG + p.media_path,
-        thumb: IMG + (p.media_path_thumb || p.media_path),
+        url: proxied(p.media_path),
+        thumb: proxied(p.media_path_thumb || p.media_path),
         time: thaiTimeToIso(p.media_datetime, tz),
         source,
       }

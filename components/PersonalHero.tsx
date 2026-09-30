@@ -6,6 +6,7 @@ import { ago, fmt, thDateTime, thShort } from '@/lib/format';
 import type { HouseOpts, Photo, Place, Situation, Station } from '@/lib/types';
 import { StationGauge } from './charts';
 import StationHistory from './StationHistory';
+import SafeImg from './SafeImg';
 import { referenceLevels } from '@/lib/barriers';
 import { IconPin } from './icons';
 
@@ -123,8 +124,7 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
                 <p className="sub">{radar.title} · {thShort(radar.time)} · จุดสีเขียว–แดงคือกลุ่มฝน</p>
                 <button type="button" className="photo" style={{ width: '100%' }} onClick={() => onPhoto(radar)}>
                   <div className="ph-img" style={{ aspectRatio: '6 / 5' }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- ภาพจาก ThaiWater เปลี่ยนทุก 5 นาที ไม่ต้องผ่าน image optimizer */}
-                    <img src={radar.url} alt={`${radar.title} เวลา ${thShort(radar.time)}`} loading="lazy" />
+                    <SafeImg src={radar.url} alt={`${radar.title} เวลา ${thShort(radar.time)}`} />
                   </div>
                 </button>
               </>

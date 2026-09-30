@@ -318,5 +318,485 @@
   "match": "nearest",
   "way": "คลองโรงนอก-โรงใน",
   "distM": 9
+ },
+ "C.35": {
+  "flow": 117,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำเจ้าพระยา",
+  "distM": 8
+ },
+ "CPY011": {
+  "flow": 117,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำเจ้าพระยา",
+  "distM": 6
+ },
+ "K.55A": {
+  "flow": 214,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำแม่กลอง",
+  "distM": 12
+ },
+ "NYK000": {
+  "flow": 153,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำนครนายก",
+  "distM": 4
+ },
+ "THA010": {
+  "flow": 288,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "คลองสองพี่น้อง",
+  "distM": 10
+ },
+ "BPK003": {
+  "flow": 132,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำบางปะกง",
+  "distM": 0
+ },
+ "PAS009": {
+  "flow": 217,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำป่าสัก",
+  "distM": 28
+ },
+ "CPY009": {
+  "flow": 219,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "คลองบางหลวง",
+  "distM": 7
+ },
+ "C.36": {
+  "flow": 219,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "คลองบางหลวง",
+  "distM": 5
+ },
+ "CPY010": {
+  "flow": 226,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "คลองบางบาล",
+  "distM": 6
+ },
+ "LBI001": {
+  "flow": 198,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำลพบุรี",
+  "distM": 4
+ },
+ "PTTEP1": {
+  "flow": 125,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "nearest",
+  "way": "คลองโคน",
+  "distM": 8
+ },
+ "GLF003": {
+  "flow": 57,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "nearest",
+  "way": "แม่น้ำบางตะบน",
+  "distM": 11
+ },
+ "THA005": {
+  "flow": 170,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "แม่น้ำท่าจีน",
+  "distM": 11
+ },
+ "HDA008": {
+  "flow": 276,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "canal",
+  "distM": 2
+ },
+ "CPY008": {
+  "flow": 152,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำเจ้าพระยา",
+  "distM": 1
+ },
+ "S.26": {
+  "flow": 293,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "แม่น้ำป่าสัก",
+  "distM": 5
+ },
+ "PAS008": {
+  "flow": 293,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "แม่น้ำป่าสัก",
+  "distM": 5
+ },
+ "BPK004": {
+  "flow": 285,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "Makok Irrigation Canal",
+  "distM": 0
+ },
+ "C.7A": {
+  "flow": 244,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "แม่น้ำเจ้าพระยา",
+  "distM": 20
+ },
+ "Kgt.19A": {
+  "flow": 274,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "คลองหลวง",
+  "distM": 1
+ },
+ "B.15": {
+  "flow": 25,
+  "left": "ตะวันตก",
+  "right": "ตะวันออก",
+  "match": "name",
+  "way": "แม่น้ำเพชรบุรี",
+  "distM": 26
+ },
+ "PCH001": {
+  "flow": 78,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำเพชรบุรี",
+  "distM": 4
+ },
+ "HDA012": {
+  "flow": 320,
+  "left": "ตะวันตก",
+  "right": "ตะวันออก",
+  "match": "nearest",
+  "way": "แม่น้ำป่าสัก",
+  "distM": 3
+ },
+ "Kgt.1": {
+  "flow": 268,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "แม่น้ำปราจีนบุรี",
+  "distM": 8
+ },
+ "NYK008": {
+  "flow": 172,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำนครนายก",
+  "distM": 52
+ },
+ "B.16": {
+  "flow": 111,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำเพชรบุรี",
+  "distM": 22
+ },
+ "PRC002": {
+  "flow": 260,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "แม่น้ำปราจีนบุรี",
+  "distM": 4
+ },
+ "HDA011": {
+  "flow": 182,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "canal",
+  "distM": 91
+ },
+ "K.3A": {
+  "flow": 120,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำแม่กลอง",
+  "distM": 132
+ },
+ "MOU462": {
+  "flow": 177,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "river",
+  "distM": 13
+ },
+ "MOU461": {
+  "flow": 191,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "stream",
+  "distM": 5
+ },
+ "MKSND03": {
+  "flow": 157,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำแม่กลอง",
+  "distM": 60
+ },
+ "B.10": {
+  "flow": 88,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำเพชรบุรี",
+  "distM": 7
+ },
+ "LBI002": {
+  "flow": 205,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำลพบุรี",
+  "distM": 4
+ },
+ "PRC005": {
+  "flow": 278,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "แม่น้ำปราจีนบุรี",
+  "distM": 11
+ },
+ "CPY007": {
+  "flow": 232,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "แม่น้ำเจ้าพระยา",
+  "distM": 1
+ },
+ "KRN001": {
+  "flow": 183,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำแควใหญ่",
+  "distM": 7
+ },
+ "PRC004": {
+  "flow": 58,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "nearest",
+  "way": "คลองประจันตคาม",
+  "distM": 8
+ },
+ "K.62": {
+  "flow": 307,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "river",
+  "distM": 8
+ },
+ "HDA007": {
+  "flow": 139,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "แม่น้ำน้อย",
+  "distM": 6
+ },
+ "K.35A": {
+  "flow": 120,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำแควใหญ่",
+  "distM": 17
+ },
+ "K.37": {
+  "flow": 97,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำแควน้อย",
+  "distM": 39
+ },
+ "PCH002": {
+  "flow": 43,
+  "left": "ตะวันตก",
+  "right": "ตะวันออก",
+  "match": "name",
+  "way": "คลองแม่ประจันต์",
+  "distM": 7
+ },
+ "MKSND02": {
+  "flow": 126,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำแควใหญ่",
+  "distM": 19
+ },
+ "MKVKD06": {
+  "flow": 92,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำแควน้อย",
+  "distM": 130
+ },
+ "HDA006": {
+  "flow": 181,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "แม่น้ำเจ้าพระยา",
+  "distM": 32
+ },
+ "K.12": {
+  "flow": 249,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "ห้วยลำตะเพิน",
+  "distM": 21
+ },
+ "MKSND06": {
+  "flow": 249,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "ห้วยลำตะเพิน",
+  "distM": 26
+ },
+ "RAJ003": {
+  "flow": 92,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "nearest",
+  "way": "river",
+  "distM": 19
+ },
+ "MKVKD08": {
+  "flow": 92,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "nearest",
+  "way": "river",
+  "distM": 20
+ },
+ "M.43A": {
+  "flow": 350,
+  "left": "ตะวันตก",
+  "right": "ตะวันออก",
+  "match": "name",
+  "way": "คลองลำตะคอง",
+  "distM": 1
+ },
+ "C.3": {
+  "flow": 183,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำเจ้าพระยา",
+  "distM": 22
+ },
+ "PCH003": {
+  "flow": 10,
+  "left": "ตะวันตก",
+  "right": "ตะวันออก",
+  "match": "name",
+  "way": "แม่น้ำเพชรบุรี",
+  "distM": 1
+ },
+ "B.18": {
+  "flow": 10,
+  "left": "ตะวันตก",
+  "right": "ตะวันออก",
+  "match": "name",
+  "way": "แม่น้ำเพชรบุรี",
+  "distM": 3
+ },
+ "B.9": {
+  "flow": 170,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำเพชรบุรี",
+  "distM": 28
+ },
+ "S.7A": {
+  "flow": 298,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "คลองมวกเหล็ก",
+  "distM": 5
+ },
+ "PRC001": {
+  "flow": 291,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "แม่น้ำปราจีนบุรี",
+  "distM": 4
+ },
+ "RAY002": {
+  "flow": 187,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "คลองใหญ่",
+  "distM": 10
+ },
+ "B.3A": {
+  "flow": 118,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำเพชรบุรี",
+  "distM": 7
  }
 }

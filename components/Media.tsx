@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { fmt, thDate, thDay, thShort } from '@/lib/format';
 import type { Dam, Photo, Situation } from '@/lib/types';
 import { Donut } from './charts';
+import SafeImg from './SafeImg';
 
 export function Lightbox({ photo, onClose }: { photo: Photo | null; onClose: () => void }) {
   useEffect(() => {
@@ -23,7 +24,7 @@ export function Lightbox({ photo, onClose }: { photo: Photo | null; onClose: () 
     <div className="lightbox" role="dialog" aria-modal="true" aria-label={photo.title} onClick={onClose}>
       <button type="button" className="close" aria-label="ปิด" onClick={onClose}>×</button>
       <figure onClick={e => e.stopPropagation()}>
-        <img src={photo.url} alt={photo.title} />
+        <SafeImg src={photo.url} alt={photo.title} loading="eager" />
         <figcaption>
           <b>{photo.title}</b> · {photo.caption}
           {photo.time && <> · {thShort(photo.time)}</>} · ที่มา: {photo.source}
@@ -36,7 +37,7 @@ export function Lightbox({ photo, onClose }: { photo: Photo | null; onClose: () 
 function PhotoCard({ p, onOpen, meta }: { p: Photo; onOpen: (p: Photo) => void; meta?: string }) {
   return (
     <button type="button" className="photo" onClick={() => onOpen(p)}>
-      <div className="ph-img"><img src={p.thumb} alt={p.title} loading="lazy" /></div>
+      <div className="ph-img"><SafeImg src={p.thumb} alt={p.title} /></div>
       <div className="ph-body">
         <div className="ph-title">{p.title}</div>
         <div className="ph-meta">{meta ?? (p.time ? thShort(p.time) : '')} · {p.source}</div>
@@ -82,7 +83,7 @@ export function PhotoGallery({ data, onOpen }: { data: Situation; onOpen: (p: Ph
       {(tab === 'forecast' || tab === 'region') && cur && (
         <div className="feature">
           <div className="big">
-            <img src={cur.url} alt={cur.title} onClick={() => onOpen(cur)} />
+            <SafeImg key={cur.id} src={cur.url} alt={cur.title} onClick={() => onOpen(cur)} loading="eager" />
             <div className="cap">{cur.caption}</div>
           </div>
           <div>
