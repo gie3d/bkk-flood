@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { STATUS, stationStatus } from '@/lib/assess';
 import { clamp, fmt, fmtInt, thShort } from '@/lib/format';
+import { referenceLevels } from '@/lib/barriers';
 import type { GraphPoint, Station } from '@/lib/types';
 
 /* ---------------- กราฟเส้นพร้อม tooltip ---------------- */
@@ -25,7 +26,7 @@ export function LineChart({ points, field, refs = [], unit, decimals = 2, height
     const pts = points.filter(p => p[field] !== null).map(p => ({ t: new Date(p.t).getTime(), v: p[field] as number }));
     if (pts.length < 2) return null;
     const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
-    const vals = pts.map(p => p.v).concat(refs.map(r => r.v));
+    const vals = pts.map(p => p.v).concat(refs.map(r => r.v).filter(Number.isFinite));
     let lo = Math.min(...vals), hi = Math.max(...vals);
     const pad = (hi - lo) * 0.12 || 1;
     lo -= pad; hi += pad;
@@ -125,59 +126,98 @@ export function LineChart({ points, field, refs = [], unit, decimals = 2, height
   );
 }
 
-/* ---------------- หลอดวัดระดับน้ำเทียบตลิ่ง ---------------- */
+/* ---------------- หลอดวัดระดับน้ำ เทียบตลิ่ง / คันกั้นน้ำ ---------------- */
+
+/** จัดป้ายไม่ให้ทับกัน: เรียงจากบนลงล่าง แล้วดันลงให้ห่างกันอย่างน้อยตามความสูงป้าย */
+function layoutLabels<T extends { y: number; h: number }>(items: T[], minY: number, maxY: number): (T & { ly: number })[] {
+  const sorted = items.slice().sort((a, b) => a.y - b.y).map(it => ({ ...it, ly: it.y }));
+  for (let i = 0; i < sorted.length; i++) {
+    const prev = sorted[i - 1];
+    sorted[i].ly = Math.max(sorted[i].ly, minY, prev ? prev.ly + prev.h : minY);
+  }
+  // ถ้าล้นขอบล่าง ดันกลับขึ้น
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    const next = sorted[i + 1];
+    const limit = next ? next.ly - sorted[i].h : maxY - sorted[i].h;
+    sorted[i].ly = Math.min(sorted[i].ly, limit);
+  }
+  return sorted;
+}
 
 export function StationGauge({ s, distance, selected, onClick }: { s: Station; distance?: number; selected?: boolean; onClick?: () => void }) {
   const st = stationStatus(s);
-  const pct = s.pct ?? 0;
   const color = STATUS[st].color;
-  // สเกลหลอด 0–130% ของความสูงตลิ่ง
-  const W = 170, H = 160, top = 10, bottom = H - 12, tx = 10, tw = 40;
-  const yOf = (p: number) => bottom - (clamp(p, 0, 130) / 130) * (bottom - top);
-  const water = yOf(pct);
-  const bank = yOf(100);
+  const refs = referenceLevels(s);
+  const wl = s.wl;
 
-  // ป้ายตลิ่งและป้ายน้ำต้องห่างกันพอไม่ให้ทับกัน (ป้ายน้ำมี 2 บรรทัด สูง ~26px)
-  const aboveBank = pct > 100;
-  let bankY = bank + 4;
-  let waterY = water + 4;
-  if (Math.abs(waterY - bankY) < 30) {
-    if (aboveBank) bankY = waterY + 30;
-    else waterY = bankY + 30;
+  // สเกลเป็นเมตรจริง: บนสุด = เส้นอ้างอิง/ผิวน้ำที่สูงที่สุด, ล่างสุด = ต่ำกว่าตลิ่ง/ผิวน้ำ 1.5 ม.
+  const W = 190, H = 190, top = 12, bottom = H - 8, tx = 10, tw = 38;
+  const vals = [...refs.map(r => r.v), ...(wl !== null ? [wl] : [])].filter(Number.isFinite);
+  const hi = (vals.length ? Math.max(...vals) : 1) + 0.25;
+  const lo = (vals.length ? Math.min(...vals) : 0) - 1.5;
+  const y = (v: number) => top + ((hi - clamp(v, lo, hi)) / (hi - lo)) * (bottom - top);
+  const water = wl !== null ? y(wl) : bottom;
+  const lx = tx + tw + 14;
+
+  type Item = { key: string; y: number; h: number; node: (ly: number) => React.ReactNode };
+  const items: Item[] = refs.map(r => ({
+    key: r.key,
+    y: y(r.v) + 4,
+    h: 15,
+    node: (ly: number) => (
+      <text x={lx} y={ly} fontSize="11" fill="var(--muted)">
+        {r.label} <tspan fontWeight="700" fill={r.key === 'wall' ? r.color : 'var(--text)'}>{fmt(r.v)} ม.</tspan>
+      </text>
+    ),
+  }));
+  if (wl !== null) {
+    items.push({
+      key: 'water',
+      y: water + 4,
+      h: 30,
+      node: (ly: number) => (
+        <>
+          <text x={lx} y={ly} fontSize="11" fill="var(--muted)">น้ำ <tspan fontWeight="700" fill="var(--text)">{fmt(wl)} ม.</tspan></text>
+          <text x={lx} y={ly + 15} fontSize="12" fontWeight="700" fill={color}>{s.pct !== null ? `${Math.round(s.pct)}% ของตลิ่ง` : ''}</text>
+        </>
+      ),
+    });
   }
-  waterY = clamp(waterY, top + 10, bottom - 16);
-  bankY = clamp(bankY, top + 10, bottom);
-  const lx = tx + tw + 12;
+  const placed = layoutLabels(items, top + 8, bottom + 6);
+
+  const wall = refs.find(r => r.key === 'wall');
+  const aria = [
+    `ระดับน้ำ ${fmt(wl)} เมตร`,
+    ...refs.map(r => `${r.label} ${fmt(r.v)} เมตร`),
+    s.pct !== null ? `${Math.round(s.pct)}% ของตลิ่ง` : '',
+  ].join(' ');
 
   const Tag = onClick ? 'button' : 'div';
   return (
     <Tag className={`gauge${selected ? ' selected' : ''}`} {...(onClick ? { type: 'button' as const, onClick, 'aria-pressed': !!selected } : {})}>
-      <svg viewBox={`0 0 ${W} ${H}`} role="img"
-        aria-label={`ระดับน้ำ ${fmt(s.wl)} เมตร ตลิ่ง ${fmt(s.bank)} เมตร คิดเป็น ${Math.round(pct)}% ของตลิ่ง`}>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={aria}>
         <rect x={tx} y={top} width={tw} height={bottom - top} rx="8" fill="var(--bg-alt)" stroke="var(--line)" />
         <clipPath id={`clip-${s.id}`}>
           <rect x={tx} y={top} width={tw} height={bottom - top} rx="8" />
         </clipPath>
         <g clipPath={`url(#clip-${s.id})`}>
           <rect x={tx} y={water} width={tw} height={bottom - water} fill={color} opacity=".85" />
-          <path d={`M${tx} ${water} q 5 -4 10 0 t 10 0 t 10 0 t 10 0`} fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="1.5" />
+          <path d={`M${tx} ${water} q 4.75 -4 9.5 0 t 9.5 0 t 9.5 0 t 9.5 0`} fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="1.5" />
         </g>
-
-        {/* ตลิ่ง / คันกั้นน้ำ */}
-        <line x1={tx - 4} x2={tx + tw + 6} y1={bank} y2={bank} stroke="var(--text)" strokeWidth="1.5" strokeDasharray="4 3" />
-        {Math.abs(bankY - 4 - bank) > 2 && <line x1={tx + tw + 6} x2={lx - 2} y1={bank} y2={bankY - 4} stroke="var(--muted)" strokeWidth=".8" />}
-        <text x={lx} y={bankY} fontSize="11" fill="var(--muted)">
-          ตลิ่ง <tspan fontWeight="700" fill="var(--text)">{fmt(s.bank)} ม.</tspan>
-        </text>
-
-        {/* ผิวน้ำ */}
-        <line x1={tx + tw} x2={lx - 2} y1={water} y2={waterY - 4} stroke={color} strokeWidth="1.2" />
-        <text x={lx} y={waterY} fontSize="11" fill="var(--muted)">
-          น้ำ <tspan fontWeight="700" fill="var(--text)">{fmt(s.wl)} ม.</tspan>
-        </text>
-        <text x={lx} y={waterY + 15} fontSize="12" fontWeight="700" fill={color}>
-          {s.pct !== null ? `${Math.round(pct)}% ของตลิ่ง` : '–'}
-        </text>
+        {refs.map(r => (
+          <line key={r.key} x1={tx - 5} x2={tx + tw + 6} y1={y(r.v)} y2={y(r.v)} stroke={r.color}
+            strokeWidth={r.key === 'wall' ? 2.5 : 1.5} strokeDasharray={r.dash} />
+        ))}
+        {placed.map(p => {
+          const lineY = p.key === 'water' ? water : y(refs.find(r => r.key === p.key)!.v);
+          const stroke = p.key === 'water' ? color : 'var(--muted)';
+          return (
+            <g key={p.key}>
+              <line x1={tx + tw + 6} x2={lx - 3} y1={lineY} y2={p.ly - 4} stroke={stroke} strokeWidth=".9" />
+              {p.node(p.ly)}
+            </g>
+          );
+        })}
       </svg>
       <div className="g-name">{s.name}</div>
       <div className="g-sub">{s.river || s.amphoe}{distance !== undefined ? ` · ${fmt(distance, 1)} กม.` : ''}</div>
@@ -185,10 +225,21 @@ export function StationGauge({ s, distance, selected, onClick }: { s: Station; d
         {STATUS[st].label}
         {s.over > 0
           ? ` (สูงกว่าตลิ่ง ${fmt(s.over)} ม.)`
-          : s.wl !== null && s.bank !== null && !s.stale
-            ? ` (ต่ำกว่าตลิ่ง ${fmt(s.bank - s.wl)} ม.)`
+          : wl !== null && s.bank !== null && !s.stale
+            ? ` (ต่ำกว่าตลิ่ง ${fmt(s.bank - wl)} ม.)`
             : ''}
       </div>
+      {(() => {
+        const lowBank = refs.find(r => r.key === 'bank' && r.side);
+        return lowBank && wl !== null && !s.stale ? (
+          <div className="g-sub">{wl > lowBank.v ? `น้ำล้นตลิ่งฝั่ง${lowBank.side}แล้ว` : `ถ้าน้ำขึ้น จะล้นฝั่ง${lowBank.side}ก่อน`}</div>
+        ) : null;
+      })()}
+      {wall && wl !== null && (
+        <div className="g-sub">
+          {wl < wall.v ? `ต่ำกว่าคันกั้นน้ำ${wall.approx ? ' ~' : ' '}${fmt(wall.v - wl)} ม.` : `สูงกว่าคันกั้นน้ำ${wall.approx ? ' ~' : ' '}${fmt(wl - wall.v)} ม.!`}
+        </div>
+      )}
     </Tag>
   );
 }

@@ -1,0 +1,162 @@
+{
+ "K.58": {
+  "flow": 132,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำแควน้อย",
+  "distM": 22
+ },
+ "Kgt.12A": {
+  "flow": 302,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "คลองพระปรง",
+  "distM": 36
+ },
+ "K.11A": {
+  "flow": 128,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำแม่กลอง",
+  "distM": 118
+ },
+ "CHN005": {
+  "flow": 195,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "คลองหนองคล้า",
+  "distM": 2
+ },
+ "SKE003": {
+  "flow": 106,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "nearest",
+  "way": "ตลองบ้านด่าน",
+  "distM": 3
+ },
+ "BKC004": {
+  "flow": 323,
+  "left": "ตะวันตก",
+  "right": "ตะวันออก",
+  "match": "nearest",
+  "way": "คลองลัดบางยอ",
+  "distM": 9
+ },
+ "C.67": {
+  "flow": 201,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "แม่น้ำน้อย",
+  "distM": 2
+ },
+ "THA006": {
+  "flow": 160,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำท่าจีน",
+  "distM": 9
+ },
+ "K.10": {
+  "flow": 123,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "แม่น้ำแควน้อย",
+  "distM": 105
+ },
+ "K.49": {
+  "flow": 84,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "nearest",
+  "way": "stream",
+  "distM": 9
+ },
+ "C.12": {
+  "flow": 223,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "แม่น้ำเจ้าพระยา",
+  "distM": 136
+ },
+ "BKK003": {
+  "flow": 94,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "คลองมหาสวัสดิ์",
+  "distM": 4
+ },
+ "BKC002": {
+  "flow": 105,
+  "left": "เหนือ",
+  "right": "ใต้",
+  "match": "name",
+  "way": "คลองบางกะเจ้า",
+  "distM": 5
+ },
+ "BKC003": {
+  "flow": 290,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "คลองลัดบางยอ",
+  "distM": 2
+ },
+ "BKK005": {
+  "flow": 250,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "name",
+  "way": "คลองภาษีเจริญ",
+  "distM": 6
+ },
+ "BKK001": {
+  "flow": 209,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "คลองสอง",
+  "distM": 3
+ },
+ "BKK006": {
+  "flow": 245,
+  "left": "ใต้",
+  "right": "เหนือ",
+  "match": "nearest",
+  "way": "คลองมหาชัย",
+  "distM": 1
+ },
+ "VLGE20": {
+  "flow": 188,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "nearest",
+  "way": "canal",
+  "distM": 1
+ },
+ "BKK002": {
+  "flow": 172,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "คลองเปรมประชากร",
+  "distM": 1
+ },
+ "BKK019": {
+  "flow": 155,
+  "left": "ตะวันออก",
+  "right": "ตะวันตก",
+  "match": "name",
+  "way": "คลองนราภิรมย์",
+  "distM": 10
+ }
+}

@@ -351,3 +351,8 @@ button.gauge:hover { border-color: var(--brand); }
 .tbl tr.clickable:hover td { background: color-mix(in srgb, var(--brand) 6%, transparent); }
 .row-link { font: inherit; color: var(--brand); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-weight: 600; }
 .popup-more { margin-top: 6px; font: inherit; font-size: 12px; font-weight: 600; color: var(--brand); background: none; border: 1px solid currentColor; border-radius: 8px; padding: 3px 10px; cursor: pointer; }
+
+.ref-legend { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 4px; font-size: .8rem; color: var(--muted); }
+.ref-legend li { display: flex; gap: 8px; align-items: baseline; }
+.ref-legend i { flex: none; width: 22px; height: 0; transform: translateY(-3px); }
+.ref-legend b { color: var(--text); font-weight: 600; white-space: nowrap; }

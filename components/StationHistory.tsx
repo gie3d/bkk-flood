@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { BKK_FLOODWALL_MSL, STATUS, stationStatus } from '@/lib/assess';
+import { STATUS, stationStatus } from '@/lib/assess';
+import { referenceLevels } from '@/lib/barriers';
 import { fmt, fmtInt, thDate, thShort } from '@/lib/format';
 import type { Graph, Station } from '@/lib/types';
 import { LineChart } from './charts';
@@ -70,14 +71,11 @@ export default function StationHistory({ station, initialDays = 7 }: { station: 
   const st = g?.stats;
   const hasQ = !!g?.points.some(p => p.q !== null);
   const showQ = field === 'q' && hasQ;
-  const isBkkChaoPhraya = station.provCode === '10' && /เจ้าพระยา/.test(station.river);
 
+  const levels = referenceLevels(station);
   const refs = showQ
     ? (g?.qmax ? [{ v: g.qmax, label: `ความจุลำน้ำ ${fmtInt(g.qmax)}`, color: 'var(--l4)' }] : [])
-    : [
-        ...(g?.bank !== null && g?.bank !== undefined ? [{ v: g.bank, label: `ตลิ่ง ${fmt(g.bank)} ม.`, color: 'var(--l4)' }] : []),
-        ...(isBkkChaoPhraya ? [{ v: BKK_FLOODWALL_MSL, label: `คันกั้นน้ำ กทม. ≈ ${BKK_FLOODWALL_MSL.toFixed(2)} ม.`, color: 'var(--l3)' }] : []),
-      ];
+    : levels.map(r => ({ v: r.v, label: `${r.label} ${fmt(r.v)} ม.`, color: r.key === 'bank' ? 'var(--l4)' : r.color }));
 
   const overDays = st ? st.hoursOverBank / 24 : 0;
 
@@ -176,6 +174,7 @@ export default function StationHistory({ station, initialDays = 7 }: { station: 
           <p className="hint">
             {showQ ? 'ปริมาณน้ำไหลผ่านสถานี (ลบ.ม./วินาที)' : 'ระดับน้ำเป็นเมตรเหนือระดับน้ำทะเลปานกลาง (ม.รทก.)'}
             {g.step > 1 && ` · แต่ละจุดคือค่าสูงสุดในช่วง ${g.step >= 24 ? `${fmt(g.step / 24, g.step % 24 ? 1 : 0)} วัน` : `${g.step} ชม.`}`}
+            {!showQ && levels.some(r => r.approx) && ' · เส้นคันกั้นน้ำเป็นค่าประมาณของ กทม. ไม่ใช่ค่าที่วัดที่สถานีนี้'}
             {' · '}สถานะตอนนี้: <span style={{ color: STATUS[stationStatus(station)].color, fontWeight: 600 }}>{STATUS[stationStatus(station)].label}</span>
           </p>
         </>

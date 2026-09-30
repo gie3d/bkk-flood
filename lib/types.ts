@@ -15,7 +15,12 @@ export interface Station {
   river: string;
   wl: number | null;
   prev: number | null;
+  /** ตลิ่งด้านต่ำ (min_bank) */
   bank: number | null;
+  leftBank: number | null;
+  rightBank: number | null;
+  /** ระดับวิกฤตที่กรมชลประทานกำหนด (ม.รทก.) ถ้ามี */
+  critical: number | null;
   ground: number | null;
   pct: number | null;
   /** เมตรที่น้ำสูงกว่าตลิ่ง (0 ถ้ายังไม่ล้น) */

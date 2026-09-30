@@ -6,6 +6,7 @@ import { ago, fmt, thDateTime, thShort } from '@/lib/format';
 import type { HouseOpts, Photo, Place, Situation, Station } from '@/lib/types';
 import { StationGauge } from './charts';
 import StationHistory from './StationHistory';
+import { referenceLevels } from '@/lib/barriers';
 import { IconPin } from './icons';
 
 interface Props {
@@ -24,6 +25,7 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
   const [picked, setPicked] = useState<number | null>(null);
   const selected = a.nearest.find(x => x.s.id === picked)?.s ?? a.nearest[0]?.s;
 
+  const kinds = new Set(a.nearest.slice(0, 4).flatMap(x => referenceLevels(x.s).map(r => r.key)));
   const radar = data.photos.radar[0];
   const maxRain = Math.max(35, ...a.rainNear.map(x => x.r.mm));
 
@@ -65,7 +67,12 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
         <div className="hero-grid">
           <div className="panel">
             <h3>ระดับน้ำที่สถานีใกล้บ้านคุณ</h3>
-            <p className="sub">ความสูงเป็นเมตรเหนือระดับน้ำทะเลปานกลาง (ม.รทก.) · เส้นประคือตลิ่ง/คันกั้นน้ำ ถ้าน้ำเกินเส้นประแปลว่าน้ำล้นตลิ่งแล้ว</p>
+            <p className="sub">ความสูงเป็นเมตรเหนือระดับน้ำทะเลปานกลาง (ม.รทก.) เทียบกับระดับที่น้ำจะเริ่มล้น</p>
+            <ul className="ref-legend">
+              <li><i style={{ borderTop: '2px dashed var(--text)' }} /><b>ตลิ่ง</b> ขอบลำน้ำ ถ้าสองฝั่งสูงไม่เท่ากัน จะแสดงทั้งคู่พร้อมทิศ (เช่น ฝั่งตะวันออก) น้ำจะล้นฝั่งที่ต่ำกว่าก่อน</li>
+              {kinds.has('wall') && <li><i style={{ borderTop: '3px solid var(--l3)' }} /><b>คันกั้นน้ำ</b> แนวป้องกันที่สร้างสูงกว่าตลิ่ง บ้านหลังคันกั้นน้ำยังปลอดภัยแม้น้ำล้นตลิ่ง จนกว่าน้ำจะสูงเกินคัน (≈ คือค่าประมาณ)</li>}
+              {kinds.has('critical') && <li><i style={{ borderTop: '2px dotted var(--l4)' }} /><b>ระดับวิกฤต</b> เกณฑ์ของกรมชลประทาน (มีเฉพาะบางสถานี)</li>}
+            </ul>
             {a.nearest.length ? (
               <div className="gauges">
                 {a.nearest.slice(0, 4).map(({ s, d }) => (
