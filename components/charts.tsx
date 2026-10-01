@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { STATUS, stationStatus } from '@/lib/assess';
+import { STATUS, bankGapText, stationStatus } from '@/lib/assess';
 import { ago, clamp, fmt, fmtInt, thDateTime, thShort } from '@/lib/format';
 import { referenceLevels } from '@/lib/barriers';
 import type { GraphPoint, Station } from '@/lib/types';
@@ -187,7 +187,7 @@ export function StationGauge({ s, distance, selected, onClick, refTime }: {
       node: (ly: number) => (
         <>
           <text x={lx} y={ly} fontSize="11" fill="var(--muted)">น้ำ <tspan fontWeight="700" fill="var(--text)">{fmt(wl)} ม.</tspan></text>
-          <text x={lx} y={ly + 15} fontSize="12" fontWeight="700" fill={color}>{s.pct !== null ? `${Math.round(s.pct)}% ของตลิ่ง` : ''}</text>
+          <text x={lx} y={ly + 15} fontSize="12" fontWeight="700" fill={color}>{bankGapText(s) ?? ''}</text>
         </>
       ),
     });
@@ -198,7 +198,7 @@ export function StationGauge({ s, distance, selected, onClick, refTime }: {
   const aria = [
     `ระดับน้ำ ${fmt(wl)} เมตร`,
     ...refs.map(r => `${r.label} ${fmt(r.v)} เมตร`),
-    s.pct !== null ? `${Math.round(s.pct)}% ของตลิ่ง` : '',
+    bankGapText(s) ?? '',
   ].join(' ');
 
   const Tag = onClick ? 'button' : 'div';
@@ -236,14 +236,7 @@ export function StationGauge({ s, distance, selected, onClick, refTime }: {
         </div>
       )}
       <div className="g-sub">{s.river || s.amphoe}{distance !== undefined ? ` · ${fmt(distance, 1)} กม.` : ''}</div>
-      <div className="g-val" style={{ color }}>
-        {STATUS[st].label}
-        {s.over > 0
-          ? ` (สูงกว่าตลิ่ง ${fmt(s.over)} ม.)`
-          : wl !== null && s.bank !== null && !s.stale
-            ? ` (ต่ำกว่าตลิ่ง ${fmt(s.bank - wl)} ม.)`
-            : ''}
-      </div>
+      <div className="g-val" style={{ color }}>{STATUS[st].label}</div>
       {(() => {
         const lowBank = refs.find(r => r.key === 'bank' && r.side);
         return lowBank && wl !== null && !s.stale ? (

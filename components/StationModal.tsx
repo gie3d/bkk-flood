@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { STATUS, stationStatus } from '@/lib/assess';
+import { STATUS, bankGapText, stationStatus } from '@/lib/assess';
 import { ago, fmt, fmtInt } from '@/lib/format';
 import type { Station } from '@/lib/types';
 import StationHistory from './StationHistory';
@@ -41,7 +41,7 @@ export default function StationModal({ station, onClose }: { station: Station | 
 
         <div className="modal-now">
           <span className="sbadge" style={{ color: STATUS[st].color, fontWeight: 700 }}>
-            <i className="dot" style={{ background: STATUS[st].color }} />{STATUS[st].label}{s.pct !== null && !s.stale ? ` ${Math.round(s.pct)}% ของตลิ่ง` : ''}
+            <i className="dot" style={{ background: STATUS[st].color }} />{STATUS[st].label}{!s.stale && bankGapText(s) ? ` · ${bankGapText(s)}` : ''}
           </span>
           <span>น้ำ <b>{fmt(s.wl)} ม.</b></span>
           <span>ตลิ่ง <b>{fmt(s.bank)} ม.</b></span>

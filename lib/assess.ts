@@ -55,6 +55,13 @@ export const STATUS: Record<StationStatus, { label: string; color: string; range
   stale: { label: 'ไม่อัปเดต', color: '#a3adb8', range: '' },
 };
 
+/** ระยะห่างระหว่างผิวน้ำกับตลิ่ง เช่น "ต่ำกว่าตลิ่ง 0.28 ม." (% ของตลิ่งวัดจากท้องน้ำ แม่น้ำลึกจึงขึ้นใกล้ 100% เสมอ) */
+export function bankGapText(s: Station): string | null {
+  if (s.wl === null || s.bank === null) return null;
+  const d = s.wl - s.bank;
+  return d > 0 ? `สูงกว่าตลิ่ง ${fmt(d)} ม.` : `ต่ำกว่าตลิ่ง ${fmt(-d)} ม.`;
+}
+
 export function stationStatus(s: Station): StationStatus {
   if (s.stale || s.pct === null) return 'stale';
   if (s.pct > 100) return 'over';
