@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { assessPlace, LEVEL_NAME, LEVEL_TEXT } from '@/lib/assess';
+import { assessPlace, LEVEL_NAME, LEVEL_TEXT, stationStatus, THREAT_NAME } from '@/lib/assess';
+import { flowLine } from '@/lib/share';
 import { ago, fmt, thDateTime, thShort } from '@/lib/format';
 import type { HouseOpts, Photo, Place, Situation, Station } from '@/lib/types';
 import { StationGauge } from './charts';
@@ -9,6 +10,8 @@ import StationHistory from './StationHistory';
 import SafeImg from './SafeImg';
 import { referenceLevels } from '@/lib/barriers';
 import { IconPin } from './icons';
+import DrainRate from './DrainRate';
+import Share from './Share';
 
 interface Props {
   data: Situation;
@@ -29,6 +32,20 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
   const kinds = new Set(a.nearest.slice(0, 4).flatMap(x => referenceLevels(x.s).map(r => r.key)));
   const radar = data.photos.radar[0];
   const maxRain = Math.max(35, ...a.rainNear.map(x => x.r.mm));
+
+  // คลองใกล้บ้านที่เต็มที่สุด ใช้ดูว่าน้ำลดเร็วแค่ไหน
+  const fullCanal = a.nearest
+    .filter(x => x.d <= 8 && !/แม่น้ำ/.test(x.s.river) && ['over', 'near'].includes(stationStatus(x.s)))
+    .sort((x, y) => (y.s.pct ?? 0) - (x.s.pct ?? 0))[0]?.s;
+  const showDrain = !!fullCanal || a.rain.level >= 2;
+  const canalNearby = a.nearest.some(x => x.d <= 8 && !/แม่น้ำ/.test(x.s.river));
+
+  const shareText = [
+    `${place.name}: ระดับ ${a.level} ${LEVEL_NAME[a.level]} — ${txt.title}`,
+    `• ${THREAT_NAME.north}: ${a.north.title}`,
+    `• ${THREAT_NAME.rain}: ${a.rain.title}`,
+    flowLine(data.overall),
+  ].filter(Boolean).join('\n');
 
   return (
     <section className="hero" id="top">
@@ -52,7 +69,16 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
             </div>
             <h1>{txt.title}</h1>
             <p className="status-summary">{txt.summary}</p>
+            <div className="threat-rows">
+              {([['north', a.north], ['rain', a.rain]] as const).map(([k, t]) => (
+                <div className="threat-row lv" data-level={t.level} key={k}>
+                  <span className="tag">{THREAT_NAME[k]}</span>
+                  <div><b>{t.title}</b><small>{t.detail}</small></div>
+                </div>
+              ))}
+            </div>
             <ul className="todo">{a.todo.map(t => <li key={t}>{t}</li>)}</ul>
+            <Share text={shareText} label="แชร์ให้ครอบครัว" />
             <div className="why">
               <h3>ทำไมถึงประเมินแบบนี้</h3>
               <ul className="todo">{a.reasons.map(t => <li key={t}>{t}</li>)}</ul>
@@ -64,6 +90,25 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
             </div>
           </div>
         </div>
+
+        {showDrain && (
+          <div className="panel drain-panel">
+            <h3>ทำไมฝนหยุดแล้วน้ำยังไม่ลด?</h3>
+            <p className="sub">
+              น้ำฝนต้องไหลจากท่อ → คลองย่อย → คลองหลัก → เจ้าพระยา → ทะเล ถ้าคลองหลักยังเต็ม น้ำในซอยจะลดช้ามาก
+              บางครั้งเพียงวันละ 0.5–1 ซม. ซึ่งมองด้วยตาแทบไม่เห็น
+            </p>
+            {fullCanal ? <DrainRate key={fullCanal.id} station={fullCanal} /> : <p className="muted" style={{ margin: 0 }}>{canalNearby
+              ? 'คลองที่วัดได้ใกล้บ้านยังไม่เต็มตลิ่ง น้ำขังน่าจะมาจากฝนที่ตกเกินท่อระบายรับไหว และควรลดภายในไม่กี่ชั่วโมงหลังฝนหยุด'
+              : 'ไม่มีสถานีวัดน้ำในคลองภายในรัศมี 8 กม. จึงคำนวณอัตราน้ำลดใกล้บ้านไม่ได้'}</p>}
+            {a.east && (
+              <p className="hint">
+                <b>บ้านคุณอยู่ฝั่งตะวันออกของ กทม.</b> ซึ่งพื้นที่ต่ำกว่าฝั่งตะวันตก คลองเล็กและยาวกว่า และหลายจุดเคยเป็นพื้นที่รับน้ำ (เช่น หนองงูเห่า)
+                เมื่อฝนตกหนักกลางเมือง น้ำจึงไหลมารวมและระบายออกช้ากว่าที่อื่น
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="hero-grid">
           <div className="panel">

@@ -9,7 +9,11 @@ const playpenThai = Playpen_Sans_Thai({
   display: 'swap',
 });
 
+// ลิงก์ภาพตัวอย่าง (og:image) ต้องเป็น URL เต็ม บน Vercel ใช้โดเมนจริงของโปรเจกต์
+const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: 'น้ำจะท่วมบ้านไหม? — เช็กสถานการณ์น้ำใกล้บ้านคุณ',
   description:
     'เช็กสถานการณ์น้ำกรุงเทพฯ และปริมณฑลแบบเรียลไทม์ตามตำแหน่งบ้านของคุณ พร้อมคำแนะนำว่าควรทำอะไร ข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (ThaiWater)',

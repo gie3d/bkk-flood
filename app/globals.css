@@ -89,7 +89,7 @@ select { font: inherit; color: var(--text); background: var(--surface); border: 
 
 /* ---------- location gate ---------- */
 .gate { position: relative; overflow: hidden; padding: 36px 0 44px; background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 14%, var(--bg)) 0%, var(--bg) 100%); }
-.gate-waves { position: absolute; inset: auto 0 0 0; height: 120px; color: color-mix(in srgb, var(--water) 18%, transparent); pointer-events: none; }
+.gate-waves { position: absolute; inset: auto 0 0 0; width: 100%; height: 120px; color: color-mix(in srgb, var(--water) 18%, transparent); pointer-events: none; }
 .gate-grid { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 24px; align-items: stretch; }
 @media (max-width: 860px) { .gate-grid { grid-template-columns: 1fr; } }
 .gate h1 { font-size: clamp(1.7rem, 4.4vw, 2.6rem); }
@@ -97,7 +97,7 @@ select { font: inherit; color: var(--text); background: var(--surface); border: 
 .gate-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px; }
 .gate-map { min-height: 360px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); position: relative; }
 .gate-map .map-hint { position: absolute; z-index: 500; left: 12px; top: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; font-size: .85rem; box-shadow: var(--shadow); }
-.gate-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
+.gate-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px auto 0; padding: 0 16px; list-style: none; }
 .gate-steps li { font-size: .85rem; color: var(--muted); display: flex; gap: 8px; align-items: flex-start; }
 .gate-steps b { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: var(--brand-ink); font-size: .8rem; }
 @media (max-width: 560px) { .gate-steps { grid-template-columns: 1fr; } }
@@ -181,8 +181,8 @@ select { font: inherit; color: var(--text); background: var(--surface); border: 
 .trend-down { color: var(--l1); font-weight: 600; }
 
 /* river journey */
-.journey { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; padding: 8px 0 0; }
-.journey::before { content: ""; position: absolute; left: 7%; right: 7%; top: 44px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, #7cc4f5, var(--water), #1b5fa8); opacity: .85; }
+.journey { position: relative; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0; padding: 8px 0 0; }
+.journey::before { content: ""; position: absolute; left: 6%; right: 6%; top: 44px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, #7cc4f5, var(--water), #1b5fa8); opacity: .85; }
 .jn { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 0 4px; }
 .jn-dot { width: 72px; height: 72px; border-radius: 50%; background: var(--surface); border: 4px solid var(--c); display: grid; place-items: center; z-index: 1; box-shadow: var(--shadow); font-weight: 700; font-size: .9rem; color: var(--c); line-height: 1.1; }
 .jn-dot small { display: block; font-size: .62rem; font-weight: 600; color: var(--muted); }
@@ -373,3 +373,57 @@ main:has(> .gate) { background: linear-gradient(180deg, color-mix(in srgb, var(-
 main:has(> .gate) .gate { background: none; }
 
 .img-fail { width: 100%; height: 100%; min-height: 120px; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; color: var(--muted); font-size: .85rem; background: var(--bg-alt); }
+
+/* ---------- น้ำเหนือ vs น้ำฝน ---------- */
+.threats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+@media (max-width: 700px) { .threats { grid-template-columns: 1fr; } }
+.threat { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; background: var(--cbg, var(--surface)); border: 1px solid var(--c, var(--line)); border-radius: var(--radius); padding: 14px 16px; color: var(--text); text-decoration: none; font-size: .92rem; }
+.threat-rows { display: grid; gap: 8px; margin: 12px 0 14px; }
+.threat-row { display: flex; gap: 12px; align-items: flex-start; background: var(--cbg); border-radius: 12px; padding: 10px 12px; }
+.threat-row .tag { background: var(--c); color: #fff; flex: none; }
+.threat-row b { display: block; }
+.threat-row small { display: block; color: var(--muted); font-size: .84rem; line-height: 1.45; }
+.kpi-src { font-size: .75rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 6px; margin-top: auto; }
+
+/* ---------- ตัวเลขที่ต้องจำ ---------- */
+.magic-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; align-items: start; }
+@media (max-width: 900px) { .magic-wrap { grid-template-columns: 1fr; } }
+.magic h3 { margin-bottom: 4px; }
+.magic-rules { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 4px; font-size: .88rem; }
+.magic-rules li { border-left: 4px solid var(--c); padding-left: 8px; }
+.magic-row { margin-bottom: 18px; }
+.magic-name { font-size: .88rem; display: flex; justify-content: space-between; margin-bottom: 4px; }
+.magic-name b { font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+.magic-track { position: relative; height: 12px; background: var(--bg-alt); border-radius: 6px; }
+.magic-track > i { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--c); }
+.magic-track .mark { position: absolute; top: -3px; bottom: -3px; border-left: 2px dashed var(--l2); font-size: .68rem; color: var(--muted); padding: 16px 0 0 3px; white-space: nowrap; }
+.magic-track .mark.bkk { border-left: 2px solid var(--l4); }
+
+/* ---------- เส้นทางน้ำฝน / อัตราน้ำลด ---------- */
+.drain-path { margin-top: 12px; }
+.drain-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; counter-reset: step; }
+.drain-steps li { position: relative; background: var(--bg-alt); border-radius: 10px; padding: 8px 10px; font-size: .85rem; display: flex; flex-direction: column; }
+.drain-steps li span { color: var(--muted); font-size: .75rem; line-height: 1.35; }
+.drain-steps li:not(:last-child)::after { content: "→"; position: absolute; right: -9px; top: 50%; transform: translateY(-50%); color: var(--water); font-weight: 700; z-index: 1; }
+@media (max-width: 760px) {
+  .drain-steps { grid-template-columns: 1fr; }
+  .drain-steps li:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -13px; transform: none; }
+}
+.drain-panel { margin-top: 16px; }
+.drain-rate { background: var(--bg-alt); border-radius: 10px; padding: 10px 12px; }
+.rainbar .track { position: relative; }
+.rainbar .track .drain-mark { position: absolute; top: 0; bottom: 0; border-left: 2px dashed var(--l4); }
+a.jn-link { color: inherit; text-decoration: none; }
+a.jn-link .jn-name { text-decoration: underline; text-decoration-color: var(--line); }
+
+/* ---------- กระสอบทรายตามประเภทน้ำ ---------- */
+.threat-prep { margin: 20px 0 8px; }
+.threat-prep .panel.current { box-shadow: 0 0 0 2px var(--brand), var(--shadow); }
+.threat-prep .now { font-size: .72rem; font-weight: 700; color: #fff; background: var(--brand); padding: 1px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+
+/* ---------- แชร์ ---------- */
+.share { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 4px; }
+.btn-sm { padding: 7px 14px; font-size: .88rem; border-radius: 10px; }
+.btn-line { background: #06c755; color: #fff; }
+.btn-line:hover { filter: brightness(1.06); }
+.jn-text { display: flex; flex-direction: column; align-items: inherit; }

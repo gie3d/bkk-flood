@@ -97,8 +97,12 @@ export interface Graph {
   stats: GraphStats;
 }
 
+/** น้ำเหนือ (แม่น้ำเจ้าพระยา) กับน้ำฝน/น้ำรอระบายในเมือง เป็นคนละปัญหา ต้องรับมือต่างกัน */
+export type Threat = 'north' | 'rain';
+
 export interface Indicator {
   key: 'c13' | 'c2' | 'bkk' | 'non' | 'canal' | 'rain';
+  group: Threat;
   level: Level;
   label: string;
   value: number;
@@ -108,6 +112,19 @@ export interface Indicator {
   note: string;
   reason: string;
   trend?: { delta: number; hours: number } | null;
+  /** เวลาที่สถานีวัดค่านี้ (ISO) */
+  asOf?: string | null;
+  /** หน่วยงานเจ้าของสถานี */
+  source?: string;
+}
+
+export interface Overall {
+  level: Level;
+  /** ระดับจากน้ำเหนือ (0 = ไม่มีข้อมูล) */
+  north: Level;
+  /** ระดับจากน้ำฝน/คลองในเมือง (0 = ไม่มีข้อมูล) */
+  rain: Level;
+  indicators: Indicator[];
 }
 
 export interface Situation {
@@ -123,7 +140,7 @@ export interface Situation {
     storm: Photo[];
   };
   graphs: Record<string, Graph | null>;
-  overall: { level: Level; indicators: Indicator[] };
+  overall: Overall;
   errors: string[];
 }
 

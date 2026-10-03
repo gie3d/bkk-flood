@@ -99,7 +99,10 @@ export default function FloodApp() {
   const closePhoto = useCallback(() => setPhoto(null), []);
   const closeDetail = useCallback(() => setDetail(null), []);
 
-  const personalLevel = data && place ? assessPlace(place, opts, data.stations, data.rain, data.overall).level : data?.overall.level ?? 0;
+  const personal = data && place ? assessPlace(place, opts, data.stations, data.rain, data.overall) : null;
+  const personalLevel = personal ? personal.level : data?.overall.level ?? 0;
+  const o = data?.overall;
+  const threat = personal ? personal.threat : !o || o.level <= 1 ? 'none' : o.north >= o.rain ? 'north' : 'rain';
 
   return (
     <>
@@ -211,7 +214,7 @@ export default function FloodApp() {
           <div className="wrap">
             <h2>เตรียมตัวอย่างไรดี</h2>
             <p className="lead">ทำตามระดับสถานการณ์ ไม่ต้องตื่นตระหนก แต่ไม่ควรประมาท ติ๊กรายการที่ทำแล้ว (บันทึกไว้ในเครื่องของคุณ)</p>
-            <Prepare level={personalLevel} />
+            <Prepare level={personalLevel} threat={threat} />
           </div>
         </section>
 
