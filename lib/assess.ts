@@ -1,3 +1,4 @@
+import { FLOODWALL_REFS, FLOODWALL_SOURCE, floodwallAt } from './floodwall';
 import { clamp, distKm, fmt, fmtInt } from './format';
 import type { Graph, HouseOpts, Indicator, Level, Overall, Place, RainStation, Station, StationStatus, Threat } from './types';
 
@@ -14,8 +15,6 @@ export const DRAIN_MM_PER_HR = 60;
 export const RID_HYDRO_URL = 'https://hyd-app-db.rid.go.th/hydro1d.html';
 
 export const THREAT_NAME: Record<Threat, string> = { north: 'น้ำเหนือ', rain: 'น้ำฝน/น้ำรอระบาย' };
-/** ระดับสันแนวคันกั้นน้ำริมเจ้าพระยาของ กทม. ส่วนใหญ่ราว +2.80 ถึง +3.50 ม.รทก. ใช้ค่าต่ำสุดเพื่อความปลอดภัย */
-export const BKK_FLOODWALL_MSL = 2.8;
 export const METRO = ['10', '11', '12', '13'];
 
 export const KEY = {
@@ -154,26 +153,29 @@ export function assessOverall(stations: Station[], rain: RainStation[], graphs: 
     });
   }
 
-  const bkkRiver = [by.get(KEY.samSen), by.get(KEY.bkkBridge)].filter(isFresh);
-  if (bkkRiver.length) {
-    const vals = bkkRiver.map(s => s.wl).filter((v): v is number => v !== null);
-    const g = graphs[KEY.samSen];
-    const dayAgo = Date.now() - 24 * 3600e3;
+  // แต่ละสถานีเทียบกับคันกั้นน้ำช่วงของตัวเอง (สามเสน +3.50, สะพานกรุงเทพ +2.80) แล้วใช้จุดที่เหลือระยะน้อยที่สุด
+  const dayAgo = Date.now() - 24 * 3600e3;
+  const bkkRiver = [by.get(KEY.samSen), by.get(KEY.bkkBridge)].filter(isFresh).map(s => {
+    const vals = s.wl !== null ? [s.wl] : [];
+    const g = graphs[s.code];
     if (g) for (const p of g.points) if (p.v !== null && new Date(p.t).getTime() > dayAgo) vals.push(p.v);
-    if (vals.length) {
-      const peak = Math.max(...vals);
-      const gap = BKK_FLOODWALL_MSL - peak;
-      const level: Level = gap > 1.0 ? 1 : gap > 0.5 ? 2 : gap > 0.2 ? 3 : 4;
-      ind.push({
-        key: 'bkk', group: 'north', level, label: 'แม่น้ำเจ้าพระยาในกรุงเทพฯ (สูงสุด 24 ชม.)', value: peak, unit: 'ม.รทก.', decimals: 2,
-        meter: clamp(peak / BKK_FLOODWALL_MSL, 0, 1),
-        note: `ต่ำกว่าคันกั้นน้ำ (≈ +${BKK_FLOODWALL_MSL.toFixed(2)} ม.) ${fmt(Math.max(gap, 0))} ม. · น้ำทะเลหนุนสูงช่วง ต.ค.–พ.ย.`,
-        reason: gap > 0
-          ? `เจ้าพระยาในกรุงเทพฯ สูงสุด ${fmt(peak)} ม.รทก. ต่ำกว่าคันกั้นน้ำ ${fmt(gap)} ม.`
-          : `เจ้าพระยาในกรุงเทพฯ สูง ${fmt(peak)} ม.รทก. ถึงระดับคันกั้นน้ำแล้ว`,
-        asOf: bkkRiver[0].time, source: srcOf(bkkRiver[0]),
-      });
-    }
+    const peak = vals.length ? Math.max(...vals) : null;
+    const wall = floodwallAt(s.lat);
+    return { s, peak, wall, gap: peak === null ? Infinity : wall.v - peak };
+  }).filter(x => x.peak !== null).sort((a, b) => a.gap - b.gap);
+  if (bkkRiver.length) {
+    const { s, peak, wall, gap } = bkkRiver[0] as { s: Station; peak: number; wall: { v: number; section: string }; gap: number };
+    const level: Level = gap > 1.0 ? 1 : gap > 0.5 ? 2 : gap > 0.2 ? 3 : 4;
+    ind.push({
+      key: 'bkk', group: 'north', level, label: 'แม่น้ำเจ้าพระยาในกรุงเทพฯ (สูงสุด 24 ชม.)', value: peak, unit: 'ม.รทก.', decimals: 2,
+      meter: clamp(peak / wall.v, 0, 1),
+      note: `${s.name}: ต่ำกว่าคันกั้นน้ำช่วง${wall.section} (+${wall.v.toFixed(2)} ม.) ${fmt(Math.max(gap, 0))} ม. · น้ำทะเลหนุนสูงช่วง ต.ค.–พ.ย.`,
+      reason: gap > 0
+        ? `เจ้าพระยาที่${s.name} สูงสุด ${fmt(peak)} ม.รทก. ต่ำกว่าคันกั้นน้ำ ${fmt(gap)} ม.`
+        : `เจ้าพระยาที่${s.name} สูง ${fmt(peak)} ม.รทก. ถึงระดับคันกั้นน้ำแล้ว`,
+      asOf: s.time, source: srcOf(s),
+      refs: [{ label: `ความสูงคันกั้นน้ำ: ${FLOODWALL_SOURCE} (${FLOODWALL_REFS[0].label})`, url: FLOODWALL_REFS[0].url }],
+    });
   }
 
   const non = by.get(KEY.nonthaburi);

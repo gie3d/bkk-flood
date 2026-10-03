@@ -1,5 +1,5 @@
-import { BKK_FLOODWALL_MSL } from './assess';
 import BANK_SIDES from './bank-sides.json';
+import { floodwallAt, FLOODWALL_SOURCE } from './floodwall';
 import type { Station } from './types';
 
 /** เส้นระดับอ้างอิงที่แสดงคู่กับระดับน้ำ (หน่วย ม.รทก.) */
@@ -32,11 +32,11 @@ export function bankSides(code: string): { left: string; right: string } | null 
 /**
  * ความสูงคันกั้นน้ำที่ทราบค่าแน่นอนรายสถานี (ม.รทก.) — ใส่เพิ่มได้เมื่อมีข้อมูลจากหน่วยงาน
  * ตัวอย่าง: 'C.12': { v: 3.0, source: 'สำนักการระบายน้ำ กทม.' }
- * ถ้าไม่มีในตารางนี้ สถานีริมเจ้าพระยาในกรุงเทพฯ จะใช้ค่าประมาณ BKK_FLOODWALL_MSL
+ * ถ้าไม่มีในตารางนี้ สถานีริมเจ้าพระยาในกรุงเทพฯ จะใช้ความสูงออกแบบของช่วงนั้น (lib/floodwall.ts)
  */
 export const BARRIERS: Record<string, { v: number; source: string }> = {};
 
-export function referenceLevels(s: Pick<Station, 'code' | 'provCode' | 'river' | 'bank' | 'leftBank' | 'rightBank' | 'critical'>): RefLevel[] {
+export function referenceLevels(s: Pick<Station, 'code' | 'lat' | 'provCode' | 'river' | 'bank' | 'leftBank' | 'rightBank' | 'critical'>): RefLevel[] {
   const out: RefLevel[] = [];
   // ข้อมูลบางสถานีผิดพลาด (เช่น ตลิ่ง 1,580 ม. หรือระดับวิกฤต 0 ที่แปลว่า "ไม่ได้ตั้งค่า")
   // จึงรับเฉพาะตัวเลขจริงที่อยู่ห่างจากตลิ่งด้านต่ำไม่เกิน 5 ม.
@@ -69,11 +69,13 @@ export function referenceLevels(s: Pick<Station, 'code' | 'provCode' | 'river' |
   const known = BARRIERS[s.code];
   if (known) {
     out.push({ key: 'wall', v: known.v, label: 'คันกั้นน้ำ', color: 'var(--l3)', note: `ความสูงคันกั้นน้ำ (ที่มา: ${known.source})` });
-  } else if (s.provCode === '10' && /เจ้าพระยา/.test(s.river) && (low === null || BKK_FLOODWALL_MSL > low)) {
-    out.push({
-      key: 'wall', v: BKK_FLOODWALL_MSL, label: 'คันกั้นน้ำ ≈', color: 'var(--l3)', approx: true,
-      note: `แนวคันกั้นน้ำริมเจ้าพระยาของ กทม. สูงราว +2.80 ถึง +3.50 ม.รทก. แล้วแต่จุด ใช้ค่าต่ำสุด ${BKK_FLOODWALL_MSL.toFixed(2)} ม. (ค่าประมาณ ไม่ใช่ค่าที่วัดที่สถานีนี้)`,
-    });
+  } else if (s.provCode === '10' && /เจ้าพระยา/.test(s.river)) {
+    const w = floodwallAt(s.lat);
+    if (low === null || w.v > low)
+      out.push({
+        key: 'wall', v: w.v, label: 'คันกั้นน้ำ', color: 'var(--l3)',
+        note: `ความสูงแนวป้องกันน้ำท่วมช่วง${w.section} ${w.v.toFixed(2)} ม.รทก. (ที่มา: ${FLOODWALL_SOURCE}) เป็นความสูงออกแบบของช่วงนี้ ไม่ใช่ค่าที่สำรวจตรงสถานี`,
+      });
   }
 
   if (ok(s.critical) && s.critical !== 0 && near(s.critical) && !out.some(r => Math.abs(r.v - s.critical!) < 0.03)) {

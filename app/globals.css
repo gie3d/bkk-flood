@@ -427,3 +427,16 @@ a.jn-link .jn-name { text-decoration: underline; text-decoration-color: var(--li
 .btn-line { background: #06c755; color: #fff; }
 .btn-line:hover { filter: brightness(1.06); }
 .jn-text { display: flex; flex-direction: column; align-items: inherit; }
+
+/* ---------- ที่มาข้อมูล ---------- */
+.ref-legend .src { display: block; font-size: .78rem; color: var(--muted); margin-top: 2px; }
+.ref-legend .src a, .kpi-src a, .chart-card p a { color: inherit; text-decoration: underline; }
+
+/* ---------- คำอธิบาย ม.รทก. ---------- */
+.msl-note { background: var(--bg-alt); border-radius: 10px; padding: 8px 12px; margin: 0 0 12px; font-size: .85rem; }
+.msl-note summary { cursor: pointer; font-weight: 600; color: var(--brand); }
+.msl-note p { margin: 6px 0 0; color: var(--muted); line-height: 1.55; }
+.msl-note b { color: var(--text); }
+
+.jn-asof { font-size: .68rem; color: var(--muted); }
+.jn-asof.old { color: var(--l3); font-weight: 600; }

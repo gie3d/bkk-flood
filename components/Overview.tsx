@@ -1,11 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import { BKK_FLOODWALL_MSL, DRAIN_MM_PER_HR, FLOW, KEY, LEVEL_NAME, METRO, RID_HYDRO_URL, STATUS, stationStatus, THREAT_NAME } from '@/lib/assess';
+import { DRAIN_MM_PER_HR, FLOW, KEY, LEVEL_NAME, METRO, RID_HYDRO_URL, STATUS, stationStatus, THREAT_NAME } from '@/lib/assess';
 import { distKm, fmt, fmtInt, thShort } from '@/lib/format';
+import { floodwallAt } from '@/lib/floodwall';
 import type { Indicator, Level, Place, Situation, Station, StationStatus, Threat } from '@/lib/types';
 import { LineChart, RiverProfile } from './charts';
 import Share from './Share';
+import MslNote from './MslNote';
+import { FloodwallSource } from './Sources';
 import { overallShareText } from '@/lib/share';
 
 function pctLevel(p: number | null): Level {
@@ -22,16 +25,18 @@ function Journey({ data }: { data: Situation }) {
   };
   const c2 = get(KEY.nakhonSawan), c13 = get(KEY.chaoPhrayaDam), ay = get(KEY.ayutthaya), bp = get(KEY.bangPaIn), non = get(KEY.nonthaburi), ss = get(KEY.samSen);
   const ind = (k: string) => data.overall.indicators.find(i => i.key === k);
+  // ค่าที่วัดก่อนเวลาดึงข้อมูลเกิน 2 ชม. ให้เห็นว่าเก่ากว่าจุดอื่น
+  const old = (t: string) => new Date(data.fetchedAt).getTime() - new Date(t).getTime() > 2 * 3600e3;
 
-  const nodes: { name: string; sub: string; value: string; unit: string; level: Level; time: string; href?: string }[] = [
-    { name: 'นครสวรรค์', sub: 'ปิง วัง ยม น่าน รวมกัน', value: c2?.discharge != null ? fmtInt(c2.discharge) : '–', unit: 'ลบ.ม./วิ', level: ind('c2')?.level ?? 0, time: 'ต้นทาง' },
-    { name: 'เขื่อนเจ้าพระยา', sub: 'ชัยนาท ควบคุมน้ำลงใต้', value: c13?.discharge != null ? fmtInt(c13.discharge) : '–', unit: 'ลบ.ม./วิ', level: ind('c13')?.level ?? 0, time: '~1 วัน' },
-    { name: 'อยุธยา', sub: ay ? ay.name : 'บ้านป้อม', value: ay?.pct != null ? `${Math.round(ay.pct)}%` : '–', unit: 'ของตลิ่ง', level: pctLevel(ay?.pct ?? null), time: '~2 วัน' },
-    { name: 'บางปะอิน', sub: bp ? bp.name : '', value: bp?.pct != null ? `${Math.round(bp.pct)}%` : '–', unit: 'ของตลิ่ง', level: pctLevel(bp?.pct ?? null), time: '~2–3 วัน' },
+  const nodes: { name: string; sub: string; value: string; unit: string; level: Level; time: string; href?: string; asOf?: string | null }[] = [
+    { name: 'นครสวรรค์', sub: 'ปิง วัง ยม น่าน รวมกัน', value: c2?.discharge != null ? fmtInt(c2.discharge) : '–', unit: 'ลบ.ม./วิ', level: ind('c2')?.level ?? 0, time: 'ต้นทาง', asOf: c2?.time },
+    { name: 'เขื่อนเจ้าพระยา', sub: 'ชัยนาท ควบคุมน้ำลงใต้', value: c13?.discharge != null ? fmtInt(c13.discharge) : '–', unit: 'ลบ.ม./วิ', level: ind('c13')?.level ?? 0, time: '~1 วัน', asOf: c13?.time },
+    { name: 'อยุธยา', sub: ay ? ay.name : 'บ้านป้อม', value: ay?.pct != null ? `${Math.round(ay.pct)}%` : '–', unit: 'ของตลิ่ง', level: pctLevel(ay?.pct ?? null), time: '~2 วัน', asOf: ay?.time },
+    { name: 'บางปะอิน', sub: bp ? bp.name : '', value: bp?.pct != null ? `${Math.round(bp.pct)}%` : '–', unit: 'ของตลิ่ง', level: pctLevel(bp?.pct ?? null), time: '~2–3 วัน', asOf: bp?.time },
     // C.29A ไม่มีใน ThaiWater ลิงก์ไปหน้าข้อมูลของกรมชลประทาน
     { name: 'บางไทร → ปทุมฯ', sub: 'C.29A น้ำที่จะเข้า กทม. จริง ๆ', value: 'ดูที่', unit: 'กรมชลฯ', level: 0, time: '~2–3 วัน', href: RID_HYDRO_URL },
-    { name: 'นนทบุรี', sub: non ? non.name : '', value: non?.pct != null ? `${Math.round(non.pct)}%` : '–', unit: 'ของตลิ่ง', level: ind('non')?.level ?? 0, time: '~3 วัน' },
-    { name: 'กรุงเทพฯ', sub: 'สามเสน เทียบคันกั้นน้ำ', value: ss?.wl != null ? fmt(ss.wl) : '–', unit: `/ ${BKK_FLOODWALL_MSL.toFixed(2)} ม.`, level: ind('bkk')?.level ?? 0, time: '~3–5 วัน' },
+    { name: 'นนทบุรี', sub: non ? non.name : '', value: non?.pct != null ? `${Math.round(non.pct)}%` : '–', unit: 'ของตลิ่ง', level: ind('non')?.level ?? 0, time: '~3 วัน', asOf: non?.time },
+    { name: 'กรุงเทพฯ', sub: 'สามเสน เทียบคันกั้นน้ำ', value: ss?.wl != null ? fmt(ss.wl) : '–', unit: ss ? `/ ${floodwallAt(ss.lat).v.toFixed(2)} ม.` : '', level: ind('bkk')?.level ?? 0, time: '~3–5 วัน', asOf: ss?.time },
     { name: 'อ่าวไทย', sub: 'น้ำทะเลหนุนสูง ต.ค.–พ.ย. ทำให้น้ำระบายช้า', value: '≈', unit: 'ทะเล', level: 0, time: 'ปลายทาง' },
   ];
 
@@ -47,6 +52,7 @@ function Journey({ data }: { data: Situation }) {
               <span className="jn-name">{n.name}</span>
               <span className="jn-sub">{n.sub}</span>
               <span className="jn-time">{n.time}</span>
+              {n.asOf && <span className={`jn-asof${old(n.asOf) ? ' old' : ''}`}>วัด {thShort(n.asOf)}</span>}
             </div>
           </>
         );
@@ -75,7 +81,12 @@ function Kpi({ i }: { i: Indicator }) {
         )}
         {i.note}
       </div>
-      {i.asOf && <div className="kpi-src">วัดจริงเมื่อ {thShort(i.asOf)} · {i.source}</div>}
+      {i.asOf && (
+        <div className="kpi-src">
+          วัดจริงเมื่อ {thShort(i.asOf)} · {i.source}
+          {i.refs?.map(r => <span key={r.url}> · <a href={r.url} target="_blank" rel="noopener noreferrer">{r.label}</a></span>)}
+        </div>
+      )}
     </div>
   );
 }
@@ -129,6 +140,20 @@ const THREAT_TEXT: Record<Threat, Record<Exclude<Level, 0>, string>> = {
   },
 };
 
+/** ช่วงเวลาที่วัดของแท่งในกราฟแม่น้ำ และสถานีที่ข้อมูลเก่า */
+function ProfileTimes({ stations }: { stations: Station[] }) {
+  const fresh = stations.filter(s => !s.stale && s.time).map(s => s.time!).sort();
+  const stale = stations.filter(s => s.stale);
+  if (!fresh.length) return null;
+  const first = fresh[0], last = fresh[fresh.length - 1];
+  return (
+    <p className="hint">
+      วัดเมื่อ {first === last ? thShort(last) : `${thShort(first)} – ${thShort(last)}`} (ชี้ที่แท่งเพื่อดูเวลาของแต่ละสถานี)
+      {stale.length > 0 && <> · แท่งสีเทาคือสถานีที่ไม่อัปเดตเกิน 6 ชม.: {stale.map(s => `${s.name} (${s.time ? thShort(s.time) : 'ไม่มีเวลา'})`).join(', ')}</>}
+    </p>
+  );
+}
+
 function Distribution({ stations, title }: { stations: Station[]; title: string }) {
   const keys: StationStatus[] = ['over', 'near', 'high', 'ok', 'stale'];
   const counts = keys.map(k => ({ k, n: stations.filter(s => stationStatus(s) === k).length }));
@@ -149,6 +174,8 @@ function Distribution({ stations, title }: { stations: Station[]; title: string 
 export default function Overview({ data, place }: { data: Situation; place: Place | null }) {
   const o = data.overall;
   const g = data.graphs;
+  const samSenSt = data.stations.find(s => s.code === KEY.samSen);
+  const samSenWall = samSenSt ? floodwallAt(samSenSt.lat).v : null;
   const flowRefs = [
     { v: FLOW.riverside, label: `บ้านริมน้ำขนของ ${fmtInt(FLOW.riverside)}`, color: 'var(--l2)' },
     { v: FLOW.bkk, label: `กระทบ กทม. ${fmtInt(FLOW.bkk)}`, color: 'var(--l4)' },
@@ -211,9 +238,13 @@ export default function Overview({ data, place }: { data: Situation; place: Plac
 
         <h3 className="subhead">ระดับน้ำตลอดแม่น้ำเจ้าพระยา</h3>
         <p className="lead" style={{ marginBottom: 14 }}>แต่ละแท่งคือสถานีวัดน้ำ เรียงจากเหนือลงใต้ ถ้าแท่งสูงเกินเส้นประสีแดง แปลว่าน้ำล้นตลิ่ง{nearIds ? ' · จุดสีน้ำเงินคือสถานีที่ใกล้บ้านคุณ' : ''}</p>
-        <div className="panel profile-wrap"><RiverProfile stations={profile} highlight={nearIds} /></div>
+        <div className="panel profile-wrap">
+          <RiverProfile stations={profile} highlight={nearIds} />
+          <ProfileTimes stations={profile} />
+        </div>
 
         <h3 className="subhead">ระดับน้ำย้อนหลัง 7 วัน</h3>
+        <MslNote example={samSenSt?.wl != null && samSenWall ? { name: 'สามเสน', wall: samSenWall, water: samSenSt.wl } : undefined} />
         <div className="charts">
           {g[KEY.nakhonSawan] && (
             <div className="chart-card">
@@ -240,9 +271,9 @@ export default function Overview({ data, place }: { data: Situation; place: Plac
           {g[KEY.samSen] && (
             <div className="chart-card">
               <h4>เจ้าพระยา สามเสน กรุงเทพฯ (C.12)</h4>
-              <p>ระดับน้ำ (ม.รทก.) ขึ้นลงวันละ 2 ครั้งตามน้ำทะเล</p>
+              <p>ระดับน้ำ (ม.รทก.) ขึ้นลงวันละ 2 ครั้งตามน้ำทะเล · คันกั้นน้ำช่วงนี้ (เหนือสะพานกรุงธน) +3.50 ม. <FloodwallSource /></p>
               <LineChart points={g[KEY.samSen]!.points} field="v" unit="ม.รทก."
-                refs={[{ v: BKK_FLOODWALL_MSL, label: `คันกั้นน้ำ ≈ ${BKK_FLOODWALL_MSL.toFixed(2)}`, color: 'var(--l4)' },
+                refs={[...(samSenWall ? [{ v: samSenWall, label: `คันกั้นน้ำ ${samSenWall.toFixed(2)}`, color: 'var(--l4)' }] : []),
                   ...(g[KEY.samSen]!.bank ? [{ v: g[KEY.samSen]!.bank!, label: `ตลิ่ง ${fmt(g[KEY.samSen]!.bank)}`, color: 'var(--l3)' }] : [])]} />
             </div>
           )}

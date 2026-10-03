@@ -43,6 +43,7 @@ lib/
   thaiwater.ts             fetches and normalizes ThaiWater data (server only)
   assess.ts                risk assessment rules (overall and per area, split into upstream vs rain)
   share.ts                 share-text helpers
+  floodwall.ts             BMA flood wall height by Chao Phraya section
   districts.ts             approximate centre coordinates for districts
 ```
 
@@ -67,7 +68,7 @@ Every indicator belongs to one of two threats, because they need different respo
 
 **For Bangkok as a whole** (`assessOverall`), per threat, the highest level among:
 - Upstream: C.2 Nakhon Sawan and C.13 Chao Phraya Dam flow: <2,000 / <3,000 / <3,500 / more (m³/s). 2,000+ means riverside homes outside the flood wall should move belongings; 3,000+ means Bangkok as a whole is affected (`FLOW` in `lib/assess.ts`).
-- Upstream: Chao Phraya at Sam Sen / Bangkok Bridge: 24-hour peak compared with the ≈ +2.80 m MSL flood wall
+- Upstream: Chao Phraya at Sam Sen / Bangkok Bridge: each station's 24-hour peak compared with the flood wall for its river section; the station closest to its wall decides. Section heights come from the BMA Drainage and Sewerage Department (`lib/floodwall.ts`): north of Krung Thon Bridge +3.50, Krung Thon–Pinklao +3.25, Pinklao–Memorial Bridge +3.00, Memorial Bridge–Bang Na +2.80 m MSL. These are design heights per section, not surveyed at each station.
 - Upstream: Nonthaburi (CPY014): % of bank (capped at level 2, because it affects riverside homes only)
 - Rain: Bangkok canals (capped at level 2, because they are local problems)
 - Rain: 24 h rainfall: <35 / <90 / more (mm). The note compares it with the ~60 mm/hour Bangkok drains can handle; ThaiWater has no usable hourly rain for Bangkok stations.

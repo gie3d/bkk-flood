@@ -116,6 +116,8 @@ export interface Indicator {
   asOf?: string | null;
   /** หน่วยงานเจ้าของสถานี */
   source?: string;
+  /** ลิงก์อ้างอิงของค่าที่ใช้เทียบ (เช่น ความสูงคันกั้นน้ำ) */
+  refs?: { label: string; url: string }[];
 }
 
 export interface Overall {

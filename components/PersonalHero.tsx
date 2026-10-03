@@ -12,6 +12,8 @@ import { referenceLevels } from '@/lib/barriers';
 import { IconPin } from './icons';
 import DrainRate from './DrainRate';
 import Share from './Share';
+import MslNote from './MslNote';
+import { FloodwallSource, ThaiWaterSource } from './Sources';
 
 interface Props {
   data: Situation;
@@ -114,10 +116,14 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
           <div className="panel">
             <h3>ระดับน้ำที่สถานีใกล้บ้านคุณ</h3>
             <p className="sub">ความสูงเป็นเมตรเหนือระดับน้ำทะเลปานกลาง (ม.รทก.) เทียบกับระดับที่น้ำจะเริ่มล้น</p>
+            <MslNote />
             <ul className="ref-legend">
-              <li><i style={{ borderTop: '2px dashed var(--text)' }} /><b>ตลิ่ง</b> ขอบลำน้ำ ถ้าสองฝั่งสูงไม่เท่ากัน จะแสดงทั้งคู่พร้อมทิศ (เช่น ฝั่งตะวันออก) น้ำจะล้นฝั่งที่ต่ำกว่าก่อน</li>
-              {kinds.has('wall') && <li><i style={{ borderTop: '3px solid var(--l3)' }} /><b>คันกั้นน้ำ</b> แนวป้องกันที่สร้างสูงกว่าตลิ่ง บ้านหลังคันกั้นน้ำยังปลอดภัยแม้น้ำล้นตลิ่ง จนกว่าน้ำจะสูงเกินคัน (≈ คือค่าประมาณ)</li>}
-              {kinds.has('critical') && <li><i style={{ borderTop: '2px dotted var(--l4)' }} /><b>ระดับวิกฤต</b> เกณฑ์ของกรมชลประทาน (มีเฉพาะบางสถานี)</li>}
+              <li><i style={{ borderTop: '2px dashed var(--text)' }} /><b>ตลิ่ง</b><span>ขอบลำน้ำ ถ้าสองฝั่งสูงไม่เท่ากัน จะแสดงทั้งคู่พร้อมทิศ (เช่น ฝั่งตะวันออก) น้ำจะล้นฝั่งที่ต่ำกว่าก่อน
+                <small className="src"><ThaiWaterSource /> (ทิศของตลิ่งคำนวณจากทิศการไหลของแม่น้ำใน <a href="https://www.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>)</small></span></li>
+              {kinds.has('wall') && <li><i style={{ borderTop: '3px solid var(--l3)' }} /><b>คันกั้นน้ำ</b><span>แนวป้องกันที่สร้างสูงกว่าตลิ่ง บ้านหลังคันกั้นน้ำยังปลอดภัยแม้น้ำล้นตลิ่ง จนกว่าน้ำจะสูงเกินคัน
+                ริมเจ้าพระยาใน กทม. ใช้ความสูงตามช่วงสะพาน: เหนือสะพานกรุงธน +3.50 · กรุงธน–ปิ่นเกล้า +3.25 · ปิ่นเกล้า–สะพานพุทธฯ +3.00 · สะพานพุทธฯ–บางนา +2.80 ม.รทก. (ความสูงออกแบบของช่วง ไม่ใช่ค่าที่สำรวจตรงสถานี)
+                <small className="src"><FloodwallSource /></small></span></li>}
+              {kinds.has('critical') && <li><i style={{ borderTop: '2px dotted var(--l4)' }} /><b>ระดับวิกฤต</b><span>เกณฑ์ของกรมชลประทาน (มีเฉพาะบางสถานี) <small className="src"><ThaiWaterSource /></small></span></li>}
             </ul>
             {a.nearest.length ? (
               <div className="gauges">

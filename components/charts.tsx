@@ -172,7 +172,7 @@ export function StationGauge({ s, distance, selected, onClick, refTime }: {
   const items: Item[] = refs.map(r => ({
     key: r.key,
     y: y(r.v) + 4,
-    h: 15,
+    h: 17, // ภาษาไทยมีสระบน/วรรณยุกต์ ต้องเว้นมากกว่าขนาดตัวอักษร
     node: (ly: number) => (
       <text x={lx} y={ly} fontSize="11" fill="var(--muted)">
         {r.label} <tspan fontWeight="700" fill={r.key === 'wall' ? r.color : 'var(--text)'}>{fmt(r.v)} ม.</tspan>
@@ -258,7 +258,8 @@ export function RiverProfile({ stations, highlight }: { stations: Station[]; hig
   const [hover, setHover] = useState<number | null>(null);
   const list = stations;
   if (list.length < 2) return <p className="muted">ไม่มีข้อมูล</p>;
-  const W = Math.max(640, list.length * 34), H = 250, L = 36, R = 10, T = 16, B = 70;
+  // ป้ายชื่อสถานีเอียง 45° ยื่นลงล่างและไปทางซ้าย จึงเว้นขอบล่าง/ซ้ายไว้ให้พอ ไม่ให้ถูกตัดหรือทับป้ายต้นน้ำ/ปากแม่น้ำ
+  const W = Math.max(640, list.length * 34) + 40, H = 350, L = 90, R = 10, T = 16, B = 170;
   const bw = (W - L - R) / list.length;
   const maxP = Math.max(130, ...list.map(s => s.pct ?? 0));
   const y = (p: number) => T + (1 - clamp(p, 0, maxP) / maxP) * (H - T - B);
@@ -282,8 +283,8 @@ export function RiverProfile({ stations, highlight }: { stations: Station[]; hig
               <rect x={L + i * bw} y={T} width={bw} height={H - T - B} fill={hover === i ? 'var(--bg-alt)' : 'transparent'} />
               <rect x={cx - bw * 0.32} y={y(p)} width={bw * 0.64} height={Math.max(y(0) - y(p), 1)} rx="3" fill={STATUS[st].color} opacity={st === 'stale' ? 0.45 : 0.9} />
               {hl && <circle cx={cx} cy={y(p) - 8} r="4" fill="var(--brand)" />}
-              <text x={cx} y={H - B + 12} transform={`rotate(-50 ${cx} ${H - B + 12})`} textAnchor="end" style={{ fontSize: 9.5, fill: hl ? 'var(--brand)' : undefined, fontWeight: hl ? 700 : undefined }}>
-                {s.prov.replace('พระนครศรีอยุธยา', 'อยุธยา').replace('กรุงเทพมหานคร', 'กทม.')} · {s.name.length > 14 ? s.name.slice(0, 13) + '…' : s.name}
+              <text x={cx} y={H - B + 12} transform={`rotate(-45 ${cx} ${H - B + 12})`} textAnchor="end" style={{ fontSize: 9.5, fill: hl ? 'var(--brand)' : undefined, fontWeight: hl ? 700 : undefined }}>
+                {s.prov.replace('พระนครศรีอยุธยา', 'อยุธยา').replace('กรุงเทพมหานคร', 'กทม.')} · {s.name.length > 20 ? s.name.slice(0, 19) + '…' : s.name}
               </text>
             </g>
           );
@@ -293,14 +294,18 @@ export function RiverProfile({ stations, highlight }: { stations: Station[]; hig
           const cx = clamp(L + hover * bw + bw / 2, 110, W - 110);
           return (
             <g pointerEvents="none">
-              <rect x={cx - 105} y={T} width="210" height="44" rx="6" fill="var(--text)" />
+              <rect x={cx - 105} y={T} width="210" height="60" rx="6" fill="var(--text)" />
               <text x={cx} y={T + 17} textAnchor="middle" style={{ fill: 'var(--bg)', fontSize: 11, fontWeight: 600 }}>{s.name} ({s.code})</text>
               <text x={cx} y={T + 34} textAnchor="middle" style={{ fill: 'var(--bg)', fontSize: 10.5 }}>
                 {s.pct !== null ? `${Math.round(s.pct)}% ของตลิ่ง` : '–'} · น้ำ {fmt(s.wl)} / ตลิ่ง {fmt(s.bank)} ม.
               </text>
+              <text x={cx} y={T + 51} textAnchor="middle" style={{ fill: 'var(--bg)', fontSize: 10.5 }}>
+                วัดเมื่อ {thShort(s.time)}{s.stale ? ' (ไม่อัปเดต)' : ''}
+              </text>
             </g>
           );
         })()}
+        <line x1={L} x2={W - R} y1={H - 20} y2={H - 20} stroke="var(--line)" />
         <text x={L} y={H - 4} style={{ fontSize: 10 }}>← ต้นน้ำ (นครสวรรค์)</text>
         <text x={W - R} y={H - 4} textAnchor="end" style={{ fontSize: 10 }}>ปากแม่น้ำ (สมุทรปราการ) →</text>
       </svg>
