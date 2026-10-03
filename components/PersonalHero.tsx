@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { assessPlace, LEVEL_NAME, LEVEL_TEXT, stationStatus, THREAT_NAME } from '@/lib/assess';
-import { flowLine } from '@/lib/share';
 import { ago, fmt, thDateTime, thShort } from '@/lib/format';
 import type { HouseOpts, Photo, Place, Situation, Station } from '@/lib/types';
 import { StationGauge } from './charts';
@@ -11,7 +10,6 @@ import SafeImg from './SafeImg';
 import { referenceLevels } from '@/lib/barriers';
 import { IconPin } from './icons';
 import DrainRate from './DrainRate';
-import Share from './Share';
 import MslNote from './MslNote';
 import { FloodwallSource, ThaiWaterSource } from './Sources';
 
@@ -41,13 +39,6 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
     .sort((x, y) => (y.s.pct ?? 0) - (x.s.pct ?? 0))[0]?.s;
   const showDrain = !!fullCanal || a.rain.level >= 2;
   const canalNearby = a.nearest.some(x => x.d <= 8 && !/แม่น้ำ/.test(x.s.river));
-
-  const shareText = [
-    `${place.name}: ระดับ ${a.level} ${LEVEL_NAME[a.level]} — ${txt.title}`,
-    `• ${THREAT_NAME.north}: ${a.north.title}`,
-    `• ${THREAT_NAME.rain}: ${a.rain.title}`,
-    flowLine(data.overall),
-  ].filter(Boolean).join('\n');
 
   return (
     <section className="hero" id="top">
@@ -80,7 +71,6 @@ export default function PersonalHero({ data, place, opts, onOpts, onChangePlace,
               ))}
             </div>
             <ul className="todo">{a.todo.map(t => <li key={t}>{t}</li>)}</ul>
-            <Share text={shareText} label="แชร์ให้ครอบครัว" />
             <div className="why">
               <h3>ทำไมถึงประเมินแบบนี้</h3>
               <ul className="todo">{a.reasons.map(t => <li key={t}>{t}</li>)}</ul>

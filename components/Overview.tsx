@@ -6,10 +6,8 @@ import { distKm, fmt, fmtInt, thShort } from '@/lib/format';
 import { floodwallAt } from '@/lib/floodwall';
 import type { Indicator, Level, Place, Situation, Station, StationStatus, Threat } from '@/lib/types';
 import { LineChart, RiverProfile } from './charts';
-import Share from './Share';
 import MslNote from './MslNote';
 import { FloodwallSource } from './Sources';
-import { overallShareText } from '@/lib/share';
 
 function pctLevel(p: number | null): Level {
   if (p === null) return 0;
@@ -221,8 +219,6 @@ export default function Overview({ data, place }: { data: Situation; place: Plac
             );
           })}
         </div>
-
-        <Share text={overallShareText(o)} label="แชร์ตัวเลขนี้" />
 
         <h3 className="subhead" id="ov-north">น้ำเหนือ: จะมาไหม?</h3>
         <div className="magic-wrap">

@@ -420,12 +420,6 @@ a.jn-link .jn-name { text-decoration: underline; text-decoration-color: var(--li
 .threat-prep { margin: 20px 0 8px; }
 .threat-prep .panel.current { box-shadow: 0 0 0 2px var(--brand), var(--shadow); }
 .threat-prep .now { font-size: .72rem; font-weight: 700; color: #fff; background: var(--brand); padding: 1px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
-
-/* ---------- แชร์ ---------- */
-.share { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 4px; }
-.btn-sm { padding: 7px 14px; font-size: .88rem; border-radius: 10px; }
-.btn-line { background: #06c755; color: #fff; }
-.btn-line:hover { filter: brightness(1.06); }
 .jn-text { display: flex; flex-direction: column; align-items: inherit; }
 
 /* ---------- ที่มาข้อมูล ---------- */

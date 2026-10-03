@@ -37,12 +37,10 @@ components/
   StationModal.tsx         full-screen window when a station is tapped (gauge / table / map)
   Prepare.tsx              checklists for each level, sandbag advice by threat
   DrainRate.tsx            how fast the nearest full canal is falling (cm/day, days until below bank)
-  Share.tsx                share a text summary (Web Share / copy / LINE)
   charts.tsx               SVG charts (line with tooltip, water gauge, river profile, donut)
 lib/
   thaiwater.ts             fetches and normalizes ThaiWater data (server only)
   assess.ts                risk assessment rules (overall and per area, split into upstream vs rain)
-  share.ts                 share-text helpers
   floodwall.ts             BMA flood wall height by Chao Phraya section
   districts.ts             approximate centre coordinates for districts
 ```

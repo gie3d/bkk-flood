@@ -1,6 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <clipPath id="r"><rect width="512" height="512" rx="112"/></clipPath>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#4FB0F2"/>
       <stop offset="1" stop-color="#C9EBFF"/>
@@ -10,12 +9,10 @@
       <stop offset="1" stop-color="#0D4A8C"/>
     </linearGradient>
   </defs>
-  <g clip-path="url(#r)">
   <rect width="512" height="512" fill="url(#sky)"/>
   <circle cx="340" cy="178" r="102" fill="#FFFFFF" opacity=".35"/>
   <circle cx="340" cy="178" r="76" fill="#FFC531"/>
   <path d="M0 296 C 64 262 128 262 192 296 S 320 330 384 296 S 470 266 512 280 V512 H0Z" fill="#7CC6F7"/>
   <path d="M0 348 C 64 312 128 312 192 348 S 320 384 384 348 S 470 316 512 330 V512 H0Z" fill="url(#sea)"/>
   <path d="M0 348 C 64 312 128 312 192 348 S 320 384 384 348 S 470 316 512 330" fill="none" stroke="#FFFFFF" stroke-opacity=".75" stroke-width="10" stroke-linecap="round"/>
-  </g>
 </svg>
